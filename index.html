@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>16-Week Powerbuilding Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f0f11;
+    --surface: #18181c;
+    --card: #1e1e24;
+    --border: #2a2a33;
+    --squat:   #e8483a;
+    --bench:   #3b82f6;
+    --deadlift:#22c55e;
+    --rest:    #64748b;
+    --text: #f0f0f2;
+    --muted: #7a7a8c;
+    --success: #22c55e;
+    --danger:  #ef4444;
+    --prescribed: #f59e0b;
+  }
+
+  body { background: var(--bg); color: var(--text); font-family: 'Barlow', sans-serif; min-height: 100vh; padding: 20px 14px 80px; }
+
+  header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .header-titles { min-width: 0; flex: 1 1 200px; }
+  .program-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: clamp(1.5rem, 5.5vw, 2.6rem); letter-spacing: 0.03em; text-transform: uppercase; line-height: 1; overflow-wrap: break-word; }
+  .program-sub { font-family: 'Barlow Condensed', sans-serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-top: 5px; }
+  .header-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .icon-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted); font-size: 1.1rem; transition: all .15s; }
+  .icon-btn:hover { border-color: var(--muted); color: var(--text); }
+  .icon-btn.sync-pending { border-color: var(--prescribed); color: var(--prescribed); }
+
+  /* ── BLOCK STRIP ── */
+  .block-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
+  .block-cell { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 6px; text-align: center; cursor: pointer; transition: all .2s; }
+  .block-cell:hover { border-color: var(--muted); }
+  .block-cell.active { border-color: var(--prescribed); background: rgba(245,158,11,0.1); }
+  .bc-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.58rem; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); display: block; }
+  .bc-name  { font-family: 'Barlow Condensed', sans-serif; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; display: block; margin-top: 2px; line-height: 1.15; }
+
+  /* ── WEEK STRIP ── */
+  .week-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 18px; }
+  .week-cell { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 6px; text-align: center; cursor: pointer; transition: all .2s; }
+  .week-cell:hover { border-color: var(--muted); }
+  .week-cell.active { border-color: var(--prescribed); background: rgba(245,158,11,0.1); }
+  .week-cell.active.test-week { border-color: var(--squat); background: rgba(232,72,58,0.12); }
+  .wc-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: block; }
+  .wc-rpe  { font-size: 0.65rem; color: var(--muted); margin-top: 2px; display: block; }
+
+  /* ── DAY TABS ── */
+  .day-tabs { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: 18px; }
+  .day-tab { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 7px 2px; cursor: pointer; text-align: center; transition: all .2s; position: relative; }
+  .day-tab:hover { border-color: var(--muted); }
+  .day-tab .tab-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.5rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); display: block; }
+  .day-tab .tab-name  { font-family: 'Barlow Condensed', sans-serif; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; display: block; margin-top: 1px; line-height: 1.08; overflow-wrap: break-word; hyphens: auto; }
+  .day-tab .tab-done  { position: absolute; top: 3px; right: 4px; font-size: 0.55rem; color: var(--success); display: none; }
+  .day-tab.completed .tab-done { display: block; }
+
+  .day-tab.active-squat    { border-color: var(--squat);    background: rgba(232,72,58,0.12); }
+  .day-tab.active-bench    { border-color: var(--bench);    background: rgba(59,130,246,0.12); }
+  .day-tab.active-deadlift { border-color: var(--deadlift); background: rgba(34,197,94,0.12); }
+  .day-tab.active-rest     { border-color: var(--rest);     background: rgba(100,116,139,0.15); }
+
+  /* ── CARD ── */
+  .day-card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+  .day-card-header { padding: 14px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .day-card-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.25rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.03em; }
+  .day-card-desc  { font-size: 0.76rem; color: var(--muted); margin-top: 3px; }
+
+  .badge { font-family: 'Barlow Condensed', sans-serif; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; padding: 3px 9px; border-radius: 4px; white-space: nowrap; margin-top: 3px; flex-shrink: 0; }
+  .badge-squat    { background: rgba(232,72,58,0.15);  color: var(--squat);    border: 1px solid rgba(232,72,58,0.3); }
+  .badge-bench    { background: rgba(59,130,246,0.15); color: var(--bench);    border: 1px solid rgba(59,130,246,0.3); }
+  .badge-deadlift { background: rgba(34,197,94,0.15);  color: var(--deadlift); border: 1px solid rgba(34,197,94,0.3); }
+  .badge-rest     { background: rgba(100,116,139,0.15);color: var(--rest);     border: 1px solid rgba(100,116,139,0.3); }
+
+  /* ── SECTION HEADERS ── */
+  .section-header { padding: 8px 18px 4px; display: flex; align-items: center; gap: 10px; }
+  .section-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.63rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .section-rule { flex: 1; height: 1px; background: var(--border); }
+  .section-note { padding: 0 18px 6px; font-size: 0.72rem; color: var(--muted); font-style: italic; }
+
+  /* ── EXERCISE ROW ── */
+  .exercise-list { padding: 4px 0 8px; }
+  .exercise-row { padding: 10px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .exercise-row:last-child { border-bottom: none; }
+  .ex-name { font-family: 'Barlow Condensed', sans-serif; font-size: 0.96rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1.2; }
+  .ex-prescription { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+  .ex-prescription span { font-weight: 600; color: var(--text); }
+
+  .prescribed-tag { display: inline-block; background: rgba(245,158,11,0.15); color: var(--prescribed); border: 1px solid rgba(245,158,11,0.3); font-family: 'Barlow Condensed', sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
+  .optional-tag { display: inline-block; background: rgba(122,122,140,0.15); color: var(--muted); border: 1px solid rgba(122,122,140,0.3); font-family: 'Barlow Condensed', sans-serif; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
+  .swap-btn { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-left: 6px; border-radius: 4px; background: rgba(122,122,140,0.15); border: 1px solid rgba(122,122,140,0.3); color: var(--muted); font-size: 0.62rem; cursor: pointer; vertical-align: middle; transition: all .15s; }
+  .swap-btn:hover { color: var(--text); border-color: var(--muted); }
+  .swap-list-btn { display: block; width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 0.82rem; padding: 10px 12px; cursor: pointer; margin-bottom: 6px; }
+  .swap-list-btn.active { border-color: var(--prescribed); background: rgba(245,158,11,0.12); color: var(--prescribed); font-weight: 600; }
+  .swap-list-btn:last-child { margin-bottom: 0; }
+
+  /* ── SETS ── */
+  .sets-wrap { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .set-row { display: grid; grid-template-columns: 24px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 26px 20px; gap: 5px; align-items: center; }
+  .set-num { font-family: 'Barlow Condensed', sans-serif; font-size: 0.66rem; font-weight: 600; color: var(--muted); letter-spacing: 0.06em; }
+
+  .mini-input { background: var(--surface); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 0.75rem; text-align: center; width: 100%; padding: 6px 2px; transition: border-color .15s; -moz-appearance: textfield; }
+  .mini-input::-webkit-inner-spin-button, .mini-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .mini-input:focus { outline: none; border-color: var(--muted); }
+  .mini-input::placeholder { color: var(--prescribed); font-size: 0.66rem; font-weight: 600; }
+  .mini-input.no-prescribed::placeholder { color: #3a3a4a; font-weight: 400; }
+
+  .set-check { width: 24px; height: 24px; border: 1.5px solid var(--border); border-radius: 5px; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; flex-shrink: 0; }
+  .set-check:hover { border-color: var(--muted); }
+  .set-check svg { display: none; }
+  .set-check.done svg { display: block; }
+  .done-squat    { border-color: var(--squat);    background: var(--squat); }
+  .done-bench    { border-color: var(--bench);    background: var(--bench); }
+  .done-deadlift { border-color: var(--deadlift); background: var(--deadlift); }
+
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+  .sync-dot.synced { background: var(--success); }
+  .sync-dot.pending { background: var(--prescribed); }
+  .sync-dot.failed { background: var(--danger); }
+
+  .col-labels { display: grid; grid-template-columns: 24px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 26px 20px; gap: 5px; margin-bottom: 4px; }
+  .col-labels span { font-size: 0.56rem; letter-spacing: 0.08em; text-transform: uppercase; color: #4a4a5a; text-align: center; }
+
+  /* ── FOOTER ── */
+  .notes-section { padding: 0 18px 14px; }
+  .notes-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; display: block; }
+  .notes-textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 0.8rem; padding: 8px 10px; resize: vertical; min-height: 46px; transition: border-color .15s; }
+  .notes-textarea:focus { outline: none; border-color: var(--muted); }
+  .notes-textarea::placeholder { color: #3a3a48; }
+
+  .day-footer { padding: 14px 18px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .progress-wrap { flex: 1; }
+  .progress-label { font-size: 0.7rem; color: var(--muted); margin-bottom: 5px; display: flex; justify-content: space-between; }
+  .progress-bar-bg { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 3px; width: 0%; transition: width .3s ease; }
+  .fill-squat    { background: var(--squat); }
+  .fill-bench    { background: var(--bench); }
+  .fill-deadlift { background: var(--deadlift); }
+  .fill-rest     { background: var(--rest); }
+
+  .finish-btn { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; transition: opacity .2s; color: #fff; white-space: nowrap; }
+  .finish-btn:disabled { opacity: 0.35; cursor: default; }
+  .finish-squat    { background: var(--squat); }
+  .finish-bench    { background: var(--bench); }
+  .finish-deadlift { background: var(--deadlift); }
+  .finish-rest     { background: var(--rest); }
+
+  .legend { display: flex; align-items: center; gap: 6px; font-size: 0.68rem; color: var(--muted); margin-bottom: 12px; padding: 7px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
+  .legend-dot { width: 7px; height: 7px; background: var(--prescribed); border-radius: 50%; flex-shrink: 0; }
+
+  .rest-card { padding: 40px 20px; text-align: center; }
+  .rest-card .ex-name { font-size: 1.3rem; margin-bottom: 6px; }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--success); color: #000; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; z-index: 100; max-width: 90vw; text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.err { background: var(--danger); color: #fff; }
+
+  /* ── MODAL / PANEL ── */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: flex-end; justify-content: center; z-index: 200; }
+  .overlay.show { display: flex; }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px 14px 0 0; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; padding: 18px 20px 26px; }
+  .panel-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.15rem; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; }
+  .panel-sub { font-size: 0.76rem; color: var(--muted); margin-bottom: 16px; }
+  .field-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; display: block; margin-top: 14px; }
+  .field-label:first-child { margin-top: 0; }
+  .full-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 0.85rem; padding: 10px 12px; }
+  .full-input:focus { outline: none; border-color: var(--muted); }
+  .btn-row { display: flex; gap: 8px; margin-top: 18px; }
+  .btn { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 16px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; background: var(--surface); color: var(--text); flex: 1; }
+  .btn.primary { background: var(--prescribed); color: #111; border-color: var(--prescribed); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .status-line { font-size: 0.74rem; margin-top: 10px; color: var(--muted); min-height: 1.2em; }
+  .status-line.ok { color: var(--success); }
+  .status-line.bad { color: var(--danger); }
+  .close-x { position: absolute; top: 12px; right: 16px; color: var(--muted); font-size: 1.3rem; cursor: pointer; background: none; border: none; }
+  .panel { position: relative; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-titles">
+    <div class="program-title">16-Week Powerbuilding</div>
+    <div class="program-sub">Coach Oreb · Block Periodized · RPE Autoregulated</div>
+  </div>
+  <div class="header-btns">
+    <button class="icon-btn" id="bwBtn" title="Log bodyweight">⚖</button>
+    <button class="icon-btn" id="syncAllBtn" title="Sync pending sets">☁</button>
+    <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
+  </div>
+</header>
+
+<div class="block-strip" id="blockStrip"></div>
+<div class="week-strip" id="weekStrip"></div>
+<div class="day-tabs" id="dayTabs"></div>
+<div class="legend"><div class="legend-dot"></div><span>Amber placeholders = prescribed weight/RPE target, or last week's logged numbers for accessory work · type your actual numbers over them</span></div>
+<div id="dayContent"></div>
+<div class="toast" id="toast"></div>
+
+<!-- Sync target iframe/form pair are created fresh per request in
+     postToSheet() below (not statically here) — see that function for why. -->
+<!-- Settings Panel -->
+<div class="overlay" id="settingsOverlay">
+  <div class="panel">
+    <button class="close-x" data-close="settingsOverlay">✕</button>
+    <div class="panel-title">Settings</div>
+    <div class="panel-sub">Connect this app to your 16Week_Powerbuilding_Progress_Tracker Google Sheet.</div>
+    <label class="field-label">Apps Script Web App URL</label>
+    <input class="full-input" id="webAppUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    <div class="btn-row">
+      <button class="btn" id="testConnBtn">Test Connection</button>
+      <button class="btn primary" id="saveUrlBtn">Save</button>
+    </div>
+    <div class="status-line" id="connStatus"></div>
+    <label class="field-label">Starting maxes (reference only)</label>
+    <div class="panel-sub" style="margin-bottom:0;">Bench 225 · Squat 275 · Deadlift 315 lbs (Aug 2026). Update your Training Max in the Plan tab of the Sheet when a block resets.</div>
+  </div>
+</div>
+
+<!-- Bodyweight Panel -->
+<div class="overlay" id="bwOverlay">
+  <div class="panel">
+    <button class="close-x" data-close="bwOverlay">✕</button>
+    <div class="panel-title">Log Bodyweight</div>
+    <label class="field-label">Date</label>
+    <input class="full-input" id="bwDate" type="date">
+    <label class="field-label">Bodyweight (lbs)</label>
+    <input class="full-input" id="bwWeight" type="number" placeholder="e.g. 175">
+    <label class="field-label">Notes</label>
+    <input class="full-input" id="bwNotes" placeholder="optional">
+    <div class="btn-row">
+      <button class="btn primary" id="bwSaveBtn" style="flex:1;">Log Bodyweight</button>
+    </div>
+    <div class="status-line" id="bwStatus"></div>
+  </div>
+</div>
+
+<!-- Swap Exercise Panel -->
+<div class="overlay" id="swapOverlay">
+  <div class="panel">
+    <button class="close-x" data-close="swapOverlay">✕</button>
+    <div class="panel-title" id="swapTitle">Swap Exercise</div>
+    <div class="panel-sub" id="swapSub"></div>
+    <div id="swapList"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+// PROGRAM DATA — mirrors "16-Week Powerbuilding Program" doc & the
+// 16Week_Powerbuilding_Progress_Tracker Google Sheet (Plan tab).
+// ══════════════════════════════════════════════════════════════════════
+
+// PLAN_TABLE: exact top-set / backoff prescriptions from the Sheet's Plan tab.
+// key = `${week}|${lift}|${setType}`
+const PLAN_ROWS = [
+  [1,'Bench','Top Set',175,6,7],[1,'Bench','Backoff',160,6,6],
+  [1,'Squat','Top Set',215,6,7],[1,'Squat','Backoff',195,6,6],
+  [1,'Deadlift','Top Set',250,6,7],[1,'Deadlift','Backoff',225,6,6],
+  [2,'Bench','Top Set',180,6,8],[2,'Bench','Backoff',160,6,7],
+  [2,'Squat','Top Set',220,6,8],[2,'Squat','Backoff',200,6,7],
+  [2,'Deadlift','Top Set',255,6,8],[2,'Deadlift','Backoff',230,6,7],
+  [3,'Bench','Top Set',185,6,9],[3,'Bench','Backoff',165,6,8],
+  [3,'Squat','Top Set',225,6,9],[3,'Squat','Backoff',205,6,8],
+  [3,'Deadlift','Top Set',260,6,9],[3,'Deadlift','Backoff',235,6,8],
+  [4,'Bench','Top Set',190,6,10],[4,'Bench','Backoff',170,6,9],
+  [4,'Squat','Top Set',230,6,10],[4,'Squat','Backoff',205,6,9],
+  [4,'Deadlift','Top Set',265,6,10],[4,'Deadlift','Backoff',240,6,9],
+  [5,'Bench','Top Set',195,4,7],[5,'Bench','Backoff',175,4,6],
+  [5,'Squat','Top Set',240,4,7],[5,'Squat','Backoff',215,4,6],
+  [5,'Deadlift','Top Set',270,4,7],[5,'Deadlift','Backoff',245,4,6],
+  [6,'Bench','Top Set',195,4,8],[6,'Bench','Backoff',175,4,7],
+  [6,'Squat','Top Set',245,4,8],[6,'Squat','Backoff',220,4,7],
+  [6,'Deadlift','Top Set',280,4,8],[6,'Deadlift','Backoff',250,4,7],
+  [7,'Bench','Top Set',200,4,9],[7,'Bench','Backoff',180,4,8],
+  [7,'Squat','Top Set',250,4,9],[7,'Squat','Backoff',225,4,8],
+  [7,'Deadlift','Top Set',285,4,9],[7,'Deadlift','Backoff',255,4,8],
+  [8,'Bench','Top Set',205,4,10],[8,'Bench','Backoff',185,4,9],
+  [8,'Squat','Top Set',255,4,10],[8,'Squat','Backoff',230,4,9],
+  [8,'Deadlift','Top Set',290,4,10],[8,'Deadlift','Backoff',260,4,9],
+  [9,'Bench','Top Set',205,3,7],[9,'Bench','Backoff',185,3,6],
+  [9,'Squat','Top Set',255,3,7],[9,'Squat','Backoff',230,3,6],
+  [9,'Deadlift','Top Set',290,3,7],[9,'Deadlift','Backoff',260,3,6],
+  [10,'Bench','Top Set',210,3,8],[10,'Bench','Backoff',190,3,7],
+  [10,'Squat','Top Set',260,3,8],[10,'Squat','Backoff',235,3,7],
+  [10,'Deadlift','Top Set',295,3,8],[10,'Deadlift','Backoff',265,3,7],
+  [11,'Bench','Top Set',215,3,9],[11,'Bench','Backoff',195,3,8],
+  [11,'Squat','Top Set',270,3,9],[11,'Squat','Backoff',245,3,8],
+  [11,'Deadlift','Top Set',305,3,9],[11,'Deadlift','Backoff',275,3,8],
+  [12,'Bench','Top Set',215,3,10],[12,'Bench','Backoff',195,3,9],
+  [12,'Squat','Top Set',270,3,10],[12,'Squat','Backoff',245,3,9],
+  [12,'Deadlift','Top Set',310,3,10],[12,'Deadlift','Backoff',280,3,9],
+  [13,'Bench','Top Set',215,2,7],[13,'Bench','Backoff',195,2,6],
+  [13,'Squat','Top Set',270,2,7],[13,'Squat','Backoff',245,2,6],
+  [13,'Deadlift','Top Set',310,2,7],[13,'Deadlift','Backoff',280,2,6],
+  [14,'Bench','Top Set',220,2,8],[14,'Bench','Backoff',200,2,7],
+  [14,'Squat','Top Set',280,2,8],[14,'Squat','Backoff',250,2,7],
+  [14,'Deadlift','Top Set',315,2,8],[14,'Deadlift','Backoff',285,2,7],
+  [15,'Bench','Top Set',225,2,9],[15,'Bench','Backoff',205,2,8],
+  [15,'Squat','Top Set',285,2,9],[15,'Squat','Backoff',255,2,8],
+  [15,'Deadlift','Top Set',325,2,9],[15,'Deadlift','Backoff',295,2,8],
+  [16,'Bench','Top Set',240,1,10],
+  [16,'Squat','Top Set',305,1,10],
+  [16,'Deadlift','Top Set',345,1,10],
+];
+const PLAN = {};
+PLAN_ROWS.forEach(r => { PLAN[`${r[0]}|${r[1]}|${r[2]}`] = { weight:r[3], reps:r[4], rpe:r[5] }; });
+
+// BLOCKS: accessory templates + variation-day config (identical across the
+// 4 weeks of a block, except the weekly RPE wave and main-lift weight,
+// which come from PLAN above).
+const BLOCKS = [
+  { num:1, name:'Hypertrophy', weeks:[1,2,3,4], variationSets:3, variationReps:'5-8', varRPE:[6,7,8,9],
+    days: {
+      day1:{ accessories:[
+        {name:'Stiletto Squat', sets:3, reps:'10-12'},
+        {name:'Romanian Deadlift', sets:3, reps:'10-12'},
+        {name:'Standing Leg Curl (Cable)', sets:3, reps:'12'},
+        {name:'Weighted Ab Work', sets:3, reps:'15'} ]},
+      day2:{ accessories:[
+        {name:'Incline DB Press', sets:3, reps:'10-12'},
+        {name:'Close-Grip Bench Press', sets:3, reps:'10-12'},
+        {name:'Lateral Raise', sets:3, reps:'12-15'},
+        {name:'Tricep Pushdown', sets:3, reps:'12-15'} ]},
+      day3:{ accessories:[
+        {name:'Barbell Row', sets:3, reps:'10-12'},
+        {name:'Lat Pulldown', sets:3, reps:'10-12'},
+        {name:'Standing Leg Curl (Cable)', sets:3, reps:'12'},
+        {name:'Pallof Press (Cable)', sets:3, reps:'12'} ]},
+      day5:{ variationName:'Pause Squat or Front Squat', accessories:[
+        {name:'Bulgarian Split Squat', sets:3, reps:'10-12/leg'},
+        {name:'Leg Extension (Cable)', sets:3, reps:'12-15'},
+        {name:'Standing Calf Raise', sets:3, reps:'12-15'},
+        {name:'Weighted Ab Work', sets:3, reps:'15'} ]},
+      day6:{ variationName:'Spoto Press or Paused Bench', accessories:[
+        {name:'Seated DB Shoulder Press', sets:3, reps:'10-12'},
+        {name:'Cable Fly', sets:3, reps:'12-15'},
+        {name:'Overhead Tricep Extension', sets:3, reps:'12'},
+        {name:'Face Pulls', sets:3, reps:'15'} ]},
+      day7:{ variationName:'Deficit Deadlift or Rack Pull', accessories:[
+        {name:'Lat Pulldown', sets:3, reps:'10-12'},
+        {name:'Seated Cable Row', sets:3, reps:'10-12'},
+        {name:'DB Shrugs', sets:3, reps:'12-15'},
+        {name:'Cable Pull-Through', sets:3, reps:'15'},
+        {name:'Cable Bicep Curl', sets:3, reps:'12-15'} ]},
+    }},
+  { num:2, name:'Strength-Hypertrophy', weeks:[5,6,7,8], variationSets:3, variationReps:'4-6', varRPE:[6,7,8,9],
+    days: {
+      day1:{ accessories:[
+        {name:'Stiletto Squat', sets:3, reps:'8-10'},
+        {name:'Romanian Deadlift', sets:3, reps:'8-10'},
+        {name:'Standing Leg Curl (Cable)', sets:3, reps:'10'},
+        {name:'Weighted Ab Work', sets:3, reps:'12-15'} ]},
+      day2:{ accessories:[
+        {name:'Incline DB Press', sets:3, reps:'8-10'},
+        {name:'Close-Grip Bench Press', sets:3, reps:'8-10'},
+        {name:'Lateral Raise', sets:3, reps:'12-15'},
+        {name:'Tricep Pushdown', sets:3, reps:'10-12'} ]},
+      day3:{ accessories:[
+        {name:'Barbell Row', sets:3, reps:'8-10'},
+        {name:'Lat Pulldown', sets:3, reps:'8-10'},
+        {name:'Standing Leg Curl (Cable)', sets:3, reps:'10'},
+        {name:'Pallof Press (Cable)', sets:3, reps:'10-12'} ]},
+      day5:{ variationName:'Pause Squat or Front Squat', accessories:[
+        {name:'Bulgarian Split Squat', sets:3, reps:'8-10/leg'},
+        {name:'Leg Extension (Cable)', sets:3, reps:'10-12'},
+        {name:'Standing Calf Raise', sets:3, reps:'12-15'},
+        {name:'Weighted Ab Work', sets:3, reps:'12-15'} ]},
+      day6:{ variationName:'Spoto Press or Paused Bench', accessories:[
+        {name:'Seated DB Shoulder Press', sets:3, reps:'8-10'},
+        {name:'Cable Fly', sets:3, reps:'10-12'},
+        {name:'Overhead Tricep Extension', sets:3, reps:'10-12'},
+        {name:'Face Pulls', sets:3, reps:'12-15'} ]},
+      day7:{ variationName:'Deficit Deadlift or Rack Pull', accessories:[
+        {name:'Lat Pulldown', sets:3, reps:'8-10'},
+        {name:'Seated Cable Row', sets:3, reps:'8-10'},
+        {name:'DB Shrugs', sets:3, reps:'10-12'},
+        {name:'Cable Pull-Through', sets:3, reps:'12-15'},
+        {name:'Cable Bicep Curl', sets:3, reps:'10-12'} ]},
+    }},
+  { num:3, name:'Strength', weeks:[9,10,11,12], variationSets:3, variationReps:'3-5', varRPE:[6,7,8,9],
+    days: {
+      day1:{ accessories:[
+        {name:'Stiletto Squat', sets:3, reps:'6-8'},
+        {name:'Romanian Deadlift', sets:3, reps:'6-8'},
+        {name:'Standing Leg Curl (Cable)', sets:3, reps:'8'},
+        {name:'Weighted Ab Work', sets:3, reps:'12'} ]},
+      day2:{ accessories:[
+        {name:'Incline DB Press', sets:3, reps:'6-8'},
+        {name:'Close-Grip Bench Press', sets:3, reps:'6-8'},
+        {name:'Lateral Raise', sets:3, reps:'10-12'},
+        {name:'Tricep Pushdown', sets:3, reps:'8-10'} ]},
+      day3:{ accessories:[
+        {name:'Barbell Row', sets:3, reps:'6-8'},
+        {name:'Lat Pulldown', sets:3, reps:'6-8'},
+        {name:'Standing Leg Curl (Cable)', sets:3, reps:'8'},
+        {name:'Pallof Press (Cable)', sets:3, reps:'10'} ]},
+      day5:{ variationName:'Pause Squat or Front Squat', accessories:[
+        {name:'Bulgarian Split Squat', sets:3, reps:'6-8/leg'},
+        {name:'Leg Extension (Cable)', sets:3, reps:'8-10'},
+        {name:'Standing Calf Raise', sets:3, reps:'10-12'},
+        {name:'Weighted Ab Work', sets:3, reps:'12'} ]},
+      day6:{ variationName:'Spoto Press or Paused Bench', accessories:[
+        {name:'Seated DB Shoulder Press', sets:3, reps:'6-8'},
+        {name:'Cable Fly', sets:3, reps:'8-10'},
+        {name:'Overhead Tricep Extension', sets:3, reps:'8-10'},
+        {name:'Face Pulls', sets:3, reps:'10-12'} ]},
+      day7:{ variationName:'Deficit Deadlift or Rack Pull', accessories:[
+        {name:'Lat Pulldown', sets:3, reps:'6-8'},
+        {name:'Seated Cable Row', sets:3, reps:'6-8'},
+        {name:'DB Shrugs', sets:3, reps:'8-10'},
+        {name:'Cable Pull-Through', sets:3, reps:'10-12'},
+        {name:'Cable Bicep Curl', sets:3, reps:'8-10'} ]},
+    }},
+  { num:4, name:'Peak', weeks:[13,14,15,16], variationSets:3, variationReps:'3-5', varRPE:[6,7,8], testWeek:16,
+    days: {
+      day1:{ accessories:[ {name:'Stiletto Squat', sets:3, reps:'6-8', optional:true, note:'Pick 1-2 accessories max — less is more this block.'} ]},
+      day2:{ accessories:[ {name:'Incline DB Press', sets:3, reps:'6-8', optional:true, note:'Pick 1-2 accessories max — less is more this block.'} ]},
+      day3:{ accessories:[ {name:'Barbell Row', sets:3, reps:'6-8', optional:true, note:'Pick 1-2 accessories max — less is more this block.'} ]},
+      day5:{ variationName:'Pause Squat', accessories:[ {name:'Standing Leg Curl (Cable)', sets:3, reps:'8'}, {name:'Weighted Ab Work', sets:3, reps:'12'} ]},
+      day6:{ variationName:'Spoto Press', accessories:[ {name:'Lateral Raise', sets:3, reps:'10'}, {name:'Tricep Pushdown', sets:3, reps:'10'} ]},
+      day7:{ variationName:'Rack Pull', accessories:[ {name:'Lat Pulldown', sets:3, reps:'8'}, {name:'Cable Pull-Through', sets:3, reps:'12'} ]},
+    }},
+];
+
+// ══════════════════════════════════════════════════════════════════════
+// EXERCISE DATABASE — substitution pools for accessory work and for the
+// squat/bench/deadlift variation-day lift. Every entry is confirmed
+// achievable with Ross's actual garage-gym equipment: a Rep Fitness Wall
+// Mount Ares 2.0 rack (barbell, bench, dual adjustable cable pulleys with
+// low-row/lat-pulldown attachments + standard cable handles) and Rep
+// Fitness x Pepin adjustable dumbbells (0-80 lbs). Deliberately excludes
+// anything needing a leg press, hack squat, leg curl/extension MACHINE,
+// dip station, GHD/back-extension bench, pull-up bar, or a landmine
+// attachment (not confirmed available) — same equipment audit as the
+// original program build (see "Ross's equipment" in the project doc).
+//
+// CATEGORY_LOOKUP is derived directly from EXERCISE_DB.accessory below —
+// single source of truth, so a name only has to be added in one place.
+// This also drives which pool the swap picker shows for a given accessory
+// slot (same muscle group as the slot's *default* program exercise).
+// ══════════════════════════════════════════════════════════════════════
+const EXERCISE_DB = {
+  variations: {
+    squat: ['Pause Squat', 'Front Squat', 'Low Bar Pause Squat', 'Stiletto Squat', 'Tempo Squat', 'Pin Squat (Anderson-Style)'],
+    bench: ['Spoto Press', 'Spoto Pause Press', 'Pause Bench Press', 'Close-Grip Pause Bench Press', 'Larsen Press (Feet-Up)', 'Tempo Bench Press'],
+    deadlift: ['Deficit Pause Deadlift', 'Rack Pull', 'Pause Deadlift', 'Deficit Deadlift', 'Snatch-Grip Deadlift', 'Pin Deadlift'],
+  },
+  accessory: {
+    Legs: ['Stiletto Squat', 'Goblet Squat', 'Bulgarian Split Squat', 'Walking Lunge', 'Reverse Lunge', 'Front-Foot-Elevated Split Squat', 'Cossack Squat', 'Romanian Deadlift', 'DB Romanian Deadlift', 'Single-Leg RDL', 'Standing Leg Curl (Cable)', 'Leg Extension (Cable)', 'Cable Pull-Through', 'Standing Calf Raise', 'Seated Calf Raise (DB)', 'DB Step-Up', 'Barbell Hip Thrust', 'Cable Kickback'],
+    Push: ['Incline DB Press', 'Flat DB Press', 'Close-Grip Bench Press', 'Cable Fly', 'DB Fly', 'Seated DB Shoulder Press', 'Standing DB Shoulder Press', 'Arnold Press', 'Lateral Raise', 'Cable Lateral Raise', 'Front Raise (DB)', 'Overhead Tricep Extension', 'Tricep Pushdown', 'Cable Rope Tricep Extension', 'DB Skull Crusher', 'DB Floor Press'],
+    Pull: ['Barbell Row', 'Lat Pulldown', 'Seated Cable Row', 'Chest-Supported DB Row', 'Single-Arm DB Row', 'Single-Arm Cable Row', 'Straight-Arm Cable Pulldown', 'Reverse-Grip Cable Row', 'Face Pulls', 'DB Shrugs', 'Barbell Shrugs', 'Cable Bicep Curl', 'DB Bicep Curl', 'Incline DB Curl', 'Hammer Curl (DB)', 'Cable Rope Hammer Curl', 'Concentration Curl (DB)'],
+    Core: ['Weighted Ab Work', 'Pallof Press (Cable)', 'Cable Crunch', 'Cable Woodchopper', 'DB Side Bend', 'Russian Twist (DB)', 'Weighted Plank (DB)', 'Half-Kneeling Pallof Press', 'Cable Reverse Crunch'],
+  },
+};
+const CATEGORY_LOOKUP = {};
+Object.keys(EXERCISE_DB.accessory).forEach(cat => {
+  EXERCISE_DB.accessory[cat].forEach(name => { CATEGORY_LOOKUP[name] = cat; });
+});
+function categoryForAccessory(name) { return CATEGORY_LOOKUP[name] || 'Uncategorized'; }
+
+const DAY_META = {
+  day1:{ label:'Day 1', tab:'Squat\nMain', title:'Squat (Main)', type:'squat', lift:'Squat', session:'Day1 - Squat Main', kind:'main' },
+  day2:{ label:'Day 2', tab:'Bench\nMain', title:'Bench (Main)', type:'bench', lift:'Bench', session:'Day2 - Bench Main', kind:'main' },
+  day3:{ label:'Day 3', tab:'DL\nMain', title:'Deadlift (Main)', type:'deadlift', lift:'Deadlift', session:'Day3 - Deadlift Main', kind:'main' },
+  day4:{ label:'Day 4', tab:'Rest', title:'Rest / Active Recovery', type:'rest', lift:null, session:null, kind:'rest' },
+  day5:{ label:'Day 5', tab:'Squat\nVar', title:'Squat (Variation) + Leg Hypertrophy', type:'squat', lift:'Squat', session:'Day5 - Squat Variation', kind:'variation' },
+  day6:{ label:'Day 6', tab:'Bench\nVar', title:'Bench (Variation) + Push Hypertrophy', type:'bench', lift:'Bench', session:'Day6 - Bench Variation', kind:'variation' },
+  day7:{ label:'Day 7', tab:'DL\nVar', title:'Deadlift (Variation) + Pull Hypertrophy', type:'deadlift', lift:'Deadlift', session:'Day7 - Deadlift Variation', kind:'variation' },
+};
+const DAY_ORDER = ['day1','day2','day3','day4','day5','day6','day7'];
+
+function blockForWeek(week) { return BLOCKS.find(b => b.weeks.includes(week)); }
+function weekInBlock(week) { const b = blockForWeek(week); return b.weeks.indexOf(week) + 1; }
+
+// Resolve everything needed to render a given (week, dayKey).
+function resolveDay(week, dayKey) {
+  const meta = DAY_META[dayKey];
+  const block = blockForWeek(week);
+  const wib = weekInBlock(week);
+  const isTest = block.testWeek === week;
+  const cfg = block.days[dayKey] || {};
+
+  if (meta.kind === 'rest') return { meta, block, week, isTest, exercises: [] };
+
+  const exercises = [];
+  // Previous week's logged accessory sets (same day), only populated when
+  // last week exists and was marked complete — see prevWeekAccessoryMap().
+  const prevAcc = prevWeekAccessoryMap(week, dayKey);
+  function pushAccessory(a) {
+    // Substitution pool is chosen by the SLOT's default exercise (a.name),
+    // not by whatever it's currently swapped to — keeps the picker's "same
+    // muscle group" pool stable even if the user swaps twice in a row.
+    const category = categoryForAccessory(a.name);
+    const sub = getAccessorySub(a.name);
+    const finalName = sub || a.name;
+    const ex = {
+      name:finalName, baseName:a.name, category,
+      exType:'accessory', setType:'Accessory', sets:a.sets, reps:a.reps,
+      optional:a.optional, note:a.note||''
+    };
+    const prevRows = prevAcc[finalName];
+    if (prevRows && prevRows.length) ex.prevWeekSets = prevRows;
+    exercises.push(ex);
+  }
+
+  if (meta.kind === 'main') {
+    const topKey = `${week}|${meta.lift}|Top Set`;
+    const top = PLAN[topKey];
+    exercises.push({
+      name: meta.lift, exType:'main', setType:'Top Set', sets:1,
+      reps: top.reps, rpeTarget: top.rpe, prescribedWeight: top.weight,
+      note: isTest ? '1RM Test — ramp up, then attempt your Block 4 Training Max' : 'Main strength lift · chase the prescribed RPE, not just the weight'
+    });
+    if (!isTest) {
+      const bo = PLAN[`${week}|${meta.lift}|Backoff`];
+      exercises.push({
+        name: meta.lift, exType:'main', setType:'Backoff', sets:2,
+        reps: bo.reps, rpeTarget: bo.rpe, prescribedWeight: bo.weight,
+        note: '~90% of top set · same rep count'
+      });
+    }
+    if (!isTest) {
+      (cfg.accessories||[]).forEach(pushAccessory);
+    }
+  }
+
+  if (meta.kind === 'variation') {
+    // One substitution slot per day-type (day5/6/7), applied uniformly
+    // across every block/week for that day — see the substitution-storage
+    // comment above loadSubs() for why this is keyed by dayKey, not index.
+    const varSub = getVariationSub(dayKey);
+    if (isTest) {
+      const baseVariationName = cfg.variationName || meta.lift;
+      exercises.push({ name: varSub || baseVariationName, baseVariationName, exType:'skip', note:'Test week — skip variation work entirely, or light technique-only reps at RPE 5.' });
+    } else {
+      const rpe = block.varRPE[wib-1];
+      const baseVariationName = cfg.variationName;
+      exercises.push({
+        name: varSub || baseVariationName, baseVariationName, exType:'variation', setType:'Accessory', sets: block.variationSets,
+        reps: block.variationReps, rpeTarget: rpe,
+        note: 'Autoregulated — pick a weight that matches the RPE target, not a fixed number'
+      });
+      (cfg.accessories||[]).forEach(pushAccessory);
+    }
+  }
+
+  return { meta, block, week, isTest, exercises };
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// STATE / PERSISTENCE
+// ══════════════════════════════════════════════════════════════════════
+let currentWeek = 1;
+let activeDay = 'day1';
+
+const mem = {}; // in-memory fallback if localStorage is unavailable
+function sk(w, d) { return `pbt16_w${w}_${d}`; }
+function loadState(w, d) {
+  const key = sk(w,d);
+  try {
+    const r = localStorage.getItem(key);
+    if (r) return JSON.parse(r);
+  } catch(e) {}
+  return mem[key] || null;
+}
+function saveState(w, d, state) {
+  const key = sk(w,d);
+  mem[key] = state;
+  try { localStorage.setItem(key, JSON.stringify(state)); } catch(e) {}
+}
+
+// ── Exercise substitutions ──
+// Keyed by the program's DEFAULT exercise name (accessory) or by dayKey
+// (variation lift, one slot per day5/6/7) rather than by array index or
+// block — a substitution is a standing "I do X instead of Y" preference
+// that applies everywhere that default slot shows up, across every block
+// and week, until reset. This keeps the swap dead simple (one global table,
+// no per-week/per-block bookkeeping) and keeps it fully compatible with the
+// existing name-based previous-week-placeholder matching: resolveDay()
+// applies today's substitution table when resolving ANY week (including
+// last week, inside prevWeekAccessoryMap's own resolveDay() call), so the
+// join key is always today's chosen name on both sides — no mismatch.
+function loadSubs() {
+  try {
+    const r = localStorage.getItem('pbt16_substitutions_v1');
+    if (r) return JSON.parse(r);
+  } catch(e) {}
+  return mem.subs || { accessory:{}, variation:{} };
+}
+function saveSubs(subs) {
+  mem.subs = subs;
+  try { localStorage.setItem('pbt16_substitutions_v1', JSON.stringify(subs)); } catch(e) {}
+}
+function getAccessorySub(baseName) { return (loadSubs().accessory || {})[baseName] || null; }
+function getVariationSub(dayKey) { return (loadSubs().variation || {})[dayKey] || null; }
+function setAccessorySub(baseName, name) { const s = loadSubs(); s.accessory = s.accessory || {}; s.accessory[baseName] = name; saveSubs(s); }
+function clearAccessorySub(baseName) { const s = loadSubs(); if (s.accessory) delete s.accessory[baseName]; saveSubs(s); }
+function setVariationSub(dayKey, name) { const s = loadSubs(); s.variation = s.variation || {}; s.variation[dayKey] = name; saveSubs(s); }
+function clearVariationSub(dayKey) { const s = loadSubs(); if (s.variation) delete s.variation[dayKey]; saveSubs(s); }
+
+function freshSetRow() { return { weight:'', reps:'', rpe:'', checked:false, syncStatus:'none' }; }
+
+function getState(week, dayKey, day) {
+  const saved = loadState(week, dayKey);
+  const exList = day.exercises;
+  const state = saved || { sets:{}, notes:'', completed:false };
+  exList.forEach((ex, exIdx) => {
+    if (ex.exType === 'skip') return;
+    const k = `${exIdx}`;
+    if (!state.sets[k] || state.sets[k].length !== ex.sets) {
+      const prev = state.sets[k] || [];
+      state.sets[k] = Array.from({length: ex.sets}, (_, i) => prev[i] || freshSetRow());
+    }
+  });
+  return state;
+}
+function getCurState() {
+  const day = resolveDay(currentWeek, activeDay);
+  return getState(currentWeek, activeDay, day);
+}
+function saveCur(state) { saveState(currentWeek, activeDay, state); }
+
+function isCompleted(week, dayKey) { const s = loadState(week, dayKey); return s && s.completed; }
+
+// Looks up last week's logged sets for every accessory exercise on the same
+// day, keyed by exercise name (not array index — accessory lists change
+// shape across block boundaries, e.g. Block 4 drops most of them, so name is
+// the only stable join key). Returns {} (no carryover) unless last week
+// exists AND was marked complete — an in-progress-but-unfinished prior week
+// intentionally does not seed placeholders, per how this is meant to work.
+function prevWeekAccessoryMap(week, dayKey) {
+  const map = {};
+  const prevWeek = week - 1;
+  if (prevWeek < 1) return map;
+  if (!isCompleted(prevWeek, dayKey)) return map;
+  const prevState = loadState(prevWeek, dayKey);
+  if (!prevState || !prevState.sets) return map;
+  const prevDay = resolveDay(prevWeek, dayKey);
+  prevDay.exercises.forEach((pe, pIdx) => {
+    if (pe.exType !== 'accessory') return;
+    const rows = prevState.sets[pIdx];
+    if (rows) map[pe.name] = rows;
+  });
+  return map;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// SYNC (Google Apps Script Web App)
+// ══════════════════════════════════════════════════════════════════════
+function getWebAppUrl() {
+  try { return localStorage.getItem('pbt16_webapp_url') || ''; } catch(e) { return mem.webAppUrl || ''; }
+}
+function setWebAppUrl(url) {
+  mem.webAppUrl = url;
+  try { localStorage.setItem('pbt16_webapp_url', url); } catch(e) {}
+}
+function todayStr() {
+  const d = new Date();
+  return `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`;
+}
+
+let __syncReqCounter = 0;
+function postToSheet(payload) {
+  // Real <form> submissions are exempt from CORS entirely (unlike fetch,
+  // even with mode:'no-cors', which is still subject to browser quirks
+  // around opaque responses and redirect handling). Submitting into a
+  // hidden same-page iframe is the most reliable way to reach an Apps
+  // Script Web App from a page opened as a local file (file://) — this is
+  // the standard workaround for this exact scenario.
+  //
+  // IMPORTANT: each call builds its OWN throwaway iframe+form rather than
+  // reusing one shared pair. Checking off several sets in quick succession
+  // fires several of these back to back — with one shared iframe, a later
+  // submit() reassigning the same target mid-navigation cancels the earlier
+  // one outright (it never reaches the server at all, no error either side,
+  // which is exactly how sets went missing with no execution failures
+  // logged). Separate iframes per request can't cancel each other.
+  //
+  // Trade-off: we still can't read anything back from a cross-origin iframe,
+  // so a resolved promise here only means the browser submitted the form —
+  // not that Apps Script accepted or wrote the row. Verify real syncs by
+  // checking the Sheet's Log tab directly; use Test Connection (a GET,
+  // read normally) to confirm the deployment itself is healthy.
+  return new Promise((resolve, reject) => {
+    const url = getWebAppUrl();
+    if (!url) { reject(new Error('no-url — set your Web App URL in Settings')); return; }
+
+    const reqId = 'pbt16Sync_' + (++__syncReqCounter);
+    const iframe = document.createElement('iframe');
+    iframe.name = reqId;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.target = reqId;
+    form.style.display = 'none';
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(payload);
+    form.appendChild(input);
+    document.body.appendChild(form);
+
+    function cleanup() {
+      if (form.parentNode) form.parentNode.removeChild(form);
+      // Leave the iframe a little longer in case its navigation is still
+      // settling, then remove it too.
+      setTimeout(() => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); }, 4000);
+    }
+
+    try {
+      form.submit();
+    } catch (e) {
+      cleanup();
+      reject(new Error('form submit error: ' + e.message));
+      return;
+    }
+    setTimeout(() => { cleanup(); resolve({ ok: true, optimistic: true }); }, 800);
+  });
+}
+
+// Re-fetches state FRESH from storage, applies a patch to one set's row, and
+// saves — with no `await` anywhere between the fetch and the save. Because
+// JS is single-threaded, that makes this read-modify-write atomic relative
+// to any other concurrent syncSet() call's commit, even though those calls'
+// surrounding network requests overlap in time.
+//
+// Without this, two syncSet() calls that each captured a `state` object
+// snapshot before their own `await postToSheet(...)` would each write back
+// their own stale snapshot when they resolved — whichever finished last
+// would silently overwrite the other's status update in localStorage. The
+// sets themselves still reached the Sheet either way, but the app's own
+// sync-status dots ended up wrong (e.g. only 1 of 15 showing "synced" after
+// rapid-checking a whole day). Always re-reading right before this write
+// closes that gap.
+function applySetPatch(week, dayKey, exIdx, setIdx, patch) {
+  const day = resolveDay(week, dayKey);
+  const state = getState(week, dayKey, day);
+  const row = state.sets[exIdx] && state.sets[exIdx][setIdx];
+  if (!row) return state;
+  Object.assign(row, patch);
+  saveState(week, dayKey, state);
+  return state;
+}
+
+async function syncSet(exIdx, setIdx) {
+  const week = currentWeek, dayKey = activeDay;
+  const day = resolveDay(week, dayKey);
+  const ex = day.exercises[exIdx];
+  // Snapshot just to build the outgoing payload — going stale while this
+  // function awaits doesn't matter, because every status commit below
+  // re-fetches state fresh (via applySetPatch) right before writing.
+  const snap = getState(week, dayKey, day);
+  const srcRow = snap.sets[exIdx][setIdx];
+  if (!srcRow.weight && !srcRow.reps) return;
+  const payloadRow = {
+    date: todayStr(), week: week, session: day.meta.session, lift: day.meta.lift,
+    exercise: ex.name, setType: ex.setType, setNum: setIdx+1,
+    weight: srcRow.weight, reps: srcRow.reps, rpe: srcRow.rpe, notes: snap.notes || ''
+  };
+
+  applySetPatch(week, dayKey, exIdx, setIdx, { syncStatus: 'pending' });
+  renderDay();
+  try {
+    await postToSheet({ type: 'sets', rows: [payloadRow] });
+    applySetPatch(week, dayKey, exIdx, setIdx, { syncStatus: 'synced', syncError: '' });
+  } catch (e) {
+    applySetPatch(week, dayKey, exIdx, setIdx, { syncStatus: 'failed', syncError: e.message });
+  }
+  renderDay();
+}
+
+async function syncAllPending() {
+  let pendingCount = 0, failCount = 0;
+  const keys = [];
+  try { for (let i=0;i<localStorage.length;i++){ const k = localStorage.key(i); if (k && k.startsWith('pbt16_w')) keys.push(k); } } catch(e) {}
+  for (const key of keys) {
+    const m = key.match(/^pbt16_w(\d+)_(day\d)$/);
+    if (!m) continue;
+    const week = parseInt(m[1]), dayKey = m[2];
+    const day = resolveDay(week, dayKey);
+    // Snapshot just to enumerate which sets currently need syncing — as with
+    // syncSet(), each commit below re-fetches state fresh right before
+    // writing, so this snapshot going stale mid-loop is fine.
+    const snap = getState(week, dayKey, day);
+    for (const exIdx of Object.keys(snap.sets)) {
+      const ex = day.exercises[exIdx];
+      if (!ex) continue;
+      const rows = snap.sets[exIdx];
+      for (let si=0; si<rows.length; si++) {
+        const row = rows[si];
+        if ((row.weight || row.reps) && row.syncStatus !== 'synced') {
+          pendingCount++;
+          const payloadRow = {
+            date: todayStr(), week: week, session: day.meta.session, lift: day.meta.lift,
+            exercise: ex.name, setType: ex.setType, setNum: si+1,
+            weight: row.weight, reps: row.reps, rpe: row.rpe, notes: snap.notes || ''
+          };
+          try {
+            await postToSheet({ type:'sets', rows:[payloadRow] });
+            applySetPatch(week, dayKey, exIdx, si, { syncStatus: 'synced', syncError: '' });
+          } catch(e) {
+            applySetPatch(week, dayKey, exIdx, si, { syncStatus: 'failed', syncError: e.message });
+            failCount++;
+          }
+        }
+      }
+    }
+  }
+  renderDay(); updateSyncIndicator();
+  if (pendingCount === 0) showToast('Nothing to sync — all caught up', false);
+  else if (failCount === 0) showToast(`Synced ${pendingCount} set${pendingCount===1?'':'s'} ✓`, false);
+  else showToast(`Synced ${pendingCount-failCount}/${pendingCount} — ${failCount} failed, check connection`, true);
+}
+
+function countPendingOrFailed() {
+  let n = 0;
+  try {
+    for (let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith('pbt16_w')) continue;
+      let state; try { state = JSON.parse(localStorage.getItem(k)); } catch(e) { continue; }
+      if (!state || !state.sets) continue;
+      Object.values(state.sets).forEach(rows => rows.forEach(r => {
+        if ((r.weight || r.reps) && r.syncStatus !== 'synced') n++;
+      }));
+    }
+  } catch(e) {}
+  return n;
+}
+function updateSyncIndicator() {
+  const n = countPendingOrFailed();
+  const btn = document.getElementById('syncAllBtn');
+  btn.classList.toggle('sync-pending', n > 0);
+  btn.title = n > 0 ? `${n} set(s) waiting to sync` : 'Sync pending sets';
+}
+
+function showToast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('err', !!isErr);
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════════════════
+function renderBlockStrip() {
+  document.getElementById('blockStrip').innerHTML = BLOCKS.map(b => {
+    const active = blockForWeek(currentWeek).num === b.num;
+    return `<div class="block-cell ${active?'active':''}" onclick="switchWeek(${b.weeks[0]})">
+      <span class="bc-label">Block ${b.num}</span>
+      <span class="bc-name">${b.name.replace('-', '-<br>')}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderWeekStrip() {
+  const block = blockForWeek(currentWeek);
+  document.getElementById('weekStrip').innerHTML = block.weeks.map(w => {
+    const active = w === currentWeek;
+    const isTest = block.testWeek === w;
+    const rpe = isTest ? 'Test' : `RPE ${7 + block.weeks.indexOf(w)}`;
+    return `<div class="week-cell ${active?'active':''} ${active&&isTest?'test-week':''}" onclick="switchWeek(${w})">
+      <span class="wc-label">Week ${w}</span>
+      <span class="wc-rpe">${rpe}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderTabs() {
+  document.getElementById('dayTabs').innerHTML = DAY_ORDER.map(dk => {
+    const meta = DAY_META[dk];
+    const active = dk === activeDay;
+    const done = isCompleted(currentWeek, dk);
+    const aCls = active ? `active-${meta.type}` : '';
+    const dCls = done ? 'completed' : '';
+    const tabLines = meta.tab.split('\n');
+    return `<div class="day-tab ${aCls} ${dCls}" onclick="switchDay('${dk}')">
+      <span class="tab-label">${meta.label}</span>
+      <span class="tab-name">${tabLines.join('<br>')}</span>
+      <span class="tab-done">✓</span>
+    </div>`;
+  }).join('');
+}
+
+function syncDotClass(status) {
+  if (status === 'synced') return 'sync-dot synced';
+  if (status === 'pending') return 'sync-dot pending';
+  if (status === 'failed') return 'sync-dot failed';
+  return 'sync-dot';
+}
+
+function renderDay() {
+  const day = resolveDay(currentWeek, activeDay);
+  const meta = day.meta;
+  const type = meta.type;
+
+  if (meta.kind === 'rest') {
+    const state = loadState(currentWeek, activeDay) || { notes:'', completed:false };
+    document.getElementById('dayContent').innerHTML = `
+      <div class="day-card">
+        <div class="day-card-header">
+          <div>
+            <div class="day-card-title">${meta.title}</div>
+            <div class="day-card-desc">Light walk, mobility work, foam rolling. No lifting.</div>
+          </div>
+          <span class="badge badge-rest">Rest</span>
+        </div>
+        <div class="rest-card">
+          <div class="ex-name">Recovery Day</div>
+          <div class="ex-prescription">Nothing to log. Come back tomorrow.</div>
+        </div>
+        <div class="notes-section">
+          <span class="notes-label">Notes</span>
+          <textarea class="notes-textarea" placeholder="How's the body feeling? Sleep, soreness, anything to flag…" oninput="updateRestNotes(this)">${state.notes||''}</textarea>
+        </div>
+      </div>`;
+    return;
+  }
+
+  let totalSets = 0, checkedSets = 0;
+  const state = getState(currentWeek, activeDay, day);
+
+  const exHTML = day.exercises.map((ex, exIdx) => {
+    if (ex.exType === 'skip') {
+      const swapBtn = `<span class="swap-btn" title="Swap variation" data-swap-kind="variation" data-swap-key="${activeDay}" data-swap-cat="${type}" data-swap-label="${ex.baseVariationName||ex.name}">⇄</span>`;
+      return `<div class="exercise-row">
+        <div class="ex-name">${ex.name}${swapBtn}</div>
+        <div class="ex-prescription">${ex.note}</div>
+      </div>`;
+    }
+
+    const rows = state.sets[exIdx];
+    const setRowsHTML = rows.map((row, si) => {
+      totalSets++;
+      if (row.checked) checkedSets++;
+      const doneCls = row.checked ? `done done-${type}` : '';
+
+      // For accessory sets, last week's logged numbers (when available —
+      // see prevWeekAccessoryMap()) take over as the amber placeholder for
+      // this exact set number, in place of the generic "lbs/reps/RPE" grey
+      // placeholder. Main-lift rows are untouched (ex.prevWeekSets is never
+      // set for exType 'main').
+      const prevRow = (ex.exType === 'accessory' && ex.prevWeekSets) ? ex.prevWeekSets[si] : null;
+      const prevHasWeight = !!(prevRow && prevRow.weight !== '' && prevRow.weight != null);
+      const prevHasReps = !!(prevRow && prevRow.reps !== '' && prevRow.reps != null);
+      const prevHasRpe = !!(prevRow && prevRow.rpe !== '' && prevRow.rpe != null);
+
+      const wPh = prevHasWeight ? `${prevRow.weight}` : (ex.prescribedWeight ? `${ex.prescribedWeight}` : 'lbs');
+      const rPh = prevHasReps ? `${prevRow.reps}` : (ex.reps ? `${ex.reps}` : 'reps');
+      const rpePh = prevHasRpe ? `${prevRow.rpe}` : (ex.rpeTarget ? `${ex.rpeTarget}` : 'RPE');
+
+      const wCls = (ex.prescribedWeight || prevHasWeight) ? '' : 'no-prescribed';
+      const rCls = prevHasReps ? '' : 'no-prescribed';
+      const rpeCls = prevHasRpe ? '' : 'no-prescribed';
+
+      return `<div class="set-row">
+        <span class="set-num">S${si+1}</span>
+        <input class="mini-input ${wCls}" type="number" inputmode="decimal" placeholder="${wPh}"
+          value="${row.weight}" data-ex="${exIdx}" data-si="${si}" data-field="weight" onchange="updateField(this)">
+        <input class="mini-input ${rCls}" type="text" inputmode="numeric" placeholder="${rPh}"
+          value="${row.reps}" data-ex="${exIdx}" data-si="${si}" data-field="reps" onchange="updateField(this)">
+        <input class="mini-input ${rpeCls}" type="number" inputmode="decimal" placeholder="${rpePh}"
+          value="${row.rpe}" data-ex="${exIdx}" data-si="${si}" data-field="rpe" onchange="updateField(this)">
+        <div class="set-check ${doneCls}" data-ex="${exIdx}" data-si="${si}" onclick="toggleCheck(this)">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="${syncDotClass(row.syncStatus)}" title="${row.syncStatus==='failed' && row.syncError ? row.syncError : row.syncStatus}"></div>
+      </div>`;
+    }).join('');
+
+    const rpeTag = ex.rpeTarget ? `<span class="prescribed-tag">RPE ${ex.rpeTarget}</span>` : '';
+    const wTag = ex.prescribedWeight ? `<span class="prescribed-tag">${ex.prescribedWeight} lbs</span>` : '';
+    const optTag = ex.optional ? `<span class="optional-tag">Optional</span>` : '';
+    const setTypeLabel = ex.exType === 'main' ? ex.setType : (ex.exType === 'variation' ? 'Variation' : 'Accessory');
+    const hasPrevData = ex.exType === 'accessory' && ex.prevWeekSets &&
+      ex.prevWeekSets.some(r => r && (r.weight !== '' || r.reps !== '' || r.rpe !== ''));
+    const prevTag = hasPrevData
+      ? `<span class="prescribed-tag" title="Amber placeholders below show what you logged last week">↻ Last Wk</span>`
+      : '';
+    const swapBtn = ex.exType === 'accessory'
+      ? `<span class="swap-btn" title="Swap exercise" data-swap-kind="accessory" data-swap-key="${ex.baseName}" data-swap-cat="${ex.category}" data-swap-label="${ex.baseName}">⇄</span>`
+      : (ex.exType === 'variation' ? `<span class="swap-btn" title="Swap variation" data-swap-kind="variation" data-swap-key="${activeDay}" data-swap-cat="${type}" data-swap-label="${ex.baseVariationName||ex.name}">⇄</span>` : '');
+
+    return `<div class="exercise-row">
+      <div class="ex-name">${ex.name}${wTag}${ex.exType!=='main'?rpeTag:''}${optTag}${prevTag}${swapBtn}</div>
+      <div class="ex-prescription">${setTypeLabel} · ${ex.sets} sets × <span>${ex.reps} reps</span>${ex.exType==='main'?` · Target RPE ${ex.rpeTarget}`:''}</div>
+      <div class="ex-prescription" style="font-style:italic;">${ex.note}</div>
+      <div class="col-labels"><span></span><span>Weight</span><span>Reps</span><span>RPE</span><span></span><span></span></div>
+      <div class="sets-wrap">${setRowsHTML}</div>
+    </div>`;
+  }).join('');
+
+  const pct = totalSets ? Math.round((checkedSets/totalSets)*100) : 0;
+  const blockLabel = `${day.block.name} · Week ${currentWeek}${day.isTest?' · TEST WEEK':''}`;
+
+  document.getElementById('dayContent').innerHTML = `
+    <div class="day-card">
+      <div class="day-card-header">
+        <div>
+          <div class="day-card-title">${meta.title}</div>
+          <div class="day-card-desc">${blockLabel}</div>
+        </div>
+        <span class="badge badge-${type}">${type.charAt(0).toUpperCase()+type.slice(1)}</span>
+      </div>
+      <div class="section-header"><span class="section-label">${meta.kind==='main'?'Main Lift':'Variation + Accessories'}</span><div class="section-rule"></div></div>
+      <div class="exercise-list">${exHTML}</div>
+      <div class="notes-section">
+        <span class="notes-label">Session Notes</span>
+        <textarea class="notes-textarea" placeholder="Log how the session felt, weights hit, anything to adjust next week…" oninput="updateNotes(this)">${state.notes||''}</textarea>
+      </div>
+      <div class="day-footer">
+        <div class="progress-wrap">
+          <div class="progress-label"><span>Sets completed</span><span>${checkedSets} / ${totalSets}</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill fill-${type}" style="width:${pct}%"></div></div>
+        </div>
+        <button class="finish-btn finish-${type}" onclick="finishWorkout()" ${state.completed?'disabled':''}>
+          ${state.completed ? '✓ Done' : 'Finish'}
+        </button>
+      </div>
+    </div>`;
+  updateSyncIndicator();
+}
+
+function updateField(input) {
+  const exIdx = input.dataset.ex, si = parseInt(input.dataset.si), field = input.dataset.field;
+  const state = getCurState();
+  state.sets[exIdx][si][field] = input.value;
+  saveCur(state);
+}
+
+function toggleCheck(el) {
+  const exIdx = el.dataset.ex, si = parseInt(el.dataset.si);
+  const state = getCurState();
+  const row = state.sets[exIdx][si];
+  row.checked = !row.checked;
+  saveCur(state);
+  renderDay();
+  if (row.checked && (row.weight || row.reps)) {
+    syncSet(parseInt(exIdx), si);
+  }
+}
+
+function updateNotes(el) { const s = getCurState(); s.notes = el.value; saveCur(s); }
+function updateRestNotes(el) {
+  const state = loadState(currentWeek, activeDay) || { notes:'', completed:false };
+  state.notes = el.value;
+  saveState(currentWeek, activeDay, state);
+}
+
+function finishWorkout() {
+  const day = resolveDay(currentWeek, activeDay);
+  const state = meta_kind_rest(day) ? (loadState(currentWeek, activeDay) || {notes:'',completed:false}) : getCurState();
+  state.completed = true;
+  saveState(currentWeek, activeDay, state);
+  showToast('Session Complete ✓', false);
+  renderTabs(); renderDay();
+}
+function meta_kind_rest(day) { return day.meta.kind === 'rest'; }
+
+function switchDay(dk)  { activeDay = dk; renderTabs(); renderDay(); }
+function switchWeek(w)  { currentWeek = w; renderBlockStrip(); renderWeekStrip(); renderTabs(); renderDay(); }
+
+// ══════════════════════════════════════════════════════════════════════
+// SETTINGS / BODYWEIGHT PANELS
+// ══════════════════════════════════════════════════════════════════════
+function openPanel(id) { document.getElementById(id).classList.add('show'); }
+function closePanel(id) { document.getElementById(id).classList.remove('show'); }
+
+// ── Swap Exercise picker ──
+// Opened via the ⇄ icon on accessory rows (pool = same muscle-group
+// category as the slot's default exercise) and on the variation-lift row /
+// test-week skip row (pool = EXERCISE_DB.variations[lift type]). Uses
+// data-attributes + event delegation (registered once on #dayContent,
+// which is never replaced wholesale — only its innerHTML — so the listener
+// survives every renderDay() call) rather than inline onclick, since
+// exercise names are passed through untouched and could in principle
+// contain characters that break a naive inline-onclick string.
+let swapCtx = null;   // { kind: 'accessory'|'variation', key, category }
+let swapItems = [];   // [{name, isDefault}] for the currently open picker
+function openSwapPicker(kind, key, category, baseLabel) {
+  swapCtx = { kind, key, category, baseLabel };
+  const pool = (kind === 'accessory' ? EXERCISE_DB.accessory[category] : EXERCISE_DB.variations[category]) || [];
+  const current = kind === 'accessory' ? getAccessorySub(key) : getVariationSub(key);
+  document.getElementById('swapTitle').textContent = 'Swap Exercise';
+  document.getElementById('swapSub').textContent = kind === 'accessory'
+    ? `Choose a replacement for ${baseLabel} — same sets/reps, different movement. Pulled from the ${category} pool for your garage-gym setup.`
+    : `Choose a ${category.charAt(0).toUpperCase()+category.slice(1)} variation for this day. Applies to every week this day-type comes up.`;
+  swapItems = [{ name: baseLabel, isDefault: true }, ...pool.filter(n => n !== baseLabel).map(n => ({ name: n, isDefault: false }))];
+  document.getElementById('swapList').innerHTML = swapItems.map((it, idx) => {
+    const active = it.isDefault ? !current : (current === it.name);
+    return `<button type="button" class="swap-list-btn ${active?'active':''}" data-idx="${idx}">${it.name}${it.isDefault?' (Default)':''}</button>`;
+  }).join('');
+  openPanel('swapOverlay');
+}
+function chooseSwap(name, isDefault) {
+  if (!swapCtx) return;
+  if (swapCtx.kind === 'accessory') {
+    if (isDefault) clearAccessorySub(swapCtx.key); else setAccessorySub(swapCtx.key, name);
+  } else {
+    if (isDefault) clearVariationSub(swapCtx.key); else setVariationSub(swapCtx.key, name);
+  }
+  closePanel('swapOverlay');
+  renderTabs(); renderDay();
+  showToast('Exercise swapped ✓', false);
+}
+document.getElementById('swapList').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-idx]');
+  if (!btn) return;
+  const it = swapItems[parseInt(btn.dataset.idx)];
+  if (it) chooseSwap(it.name, !!it.isDefault);
+});
+document.getElementById('dayContent').addEventListener('click', (e) => {
+  const btn = e.target.closest('.swap-btn');
+  if (!btn) return;
+  openSwapPicker(btn.dataset.swapKind, btn.dataset.swapKey, btn.dataset.swapCat, btn.dataset.swapLabel);
+});
+
+document.querySelectorAll('[data-close]').forEach(btn => {
+  btn.addEventListener('click', () => closePanel(btn.dataset.close));
+});
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  document.getElementById('webAppUrl').value = getWebAppUrl();
+  document.getElementById('connStatus').textContent = '';
+  document.getElementById('connStatus').className = 'status-line';
+  openPanel('settingsOverlay');
+});
+document.getElementById('saveUrlBtn').addEventListener('click', () => {
+  const url = document.getElementById('webAppUrl').value.trim();
+  setWebAppUrl(url);
+  const s = document.getElementById('connStatus');
+  s.textContent = 'Saved.'; s.className = 'status-line ok';
+});
+document.getElementById('testConnBtn').addEventListener('click', async () => {
+  const url = document.getElementById('webAppUrl').value.trim();
+  const s = document.getElementById('connStatus');
+  if (!url) { s.textContent = 'Enter a Web App URL first.'; s.className = 'status-line bad'; return; }
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec\/?$/.test(url)) {
+    s.textContent = 'That doesn\'t look like a deployed Web App URL — it should look like https://script.google.com/macros/s/AKfycb.../exec (not /dev, and not the script editor URL).';
+    s.className = 'status-line bad';
+    return;
+  }
+  s.textContent = 'Testing…'; s.className = 'status-line';
+  let res;
+  try {
+    res = await fetch(url, { method: 'GET' });
+  } catch (e) {
+    // A GET has no side effects, so a second probe here is safe (unlike POST,
+    // where retrying could log a set twice). This tells us whether the server
+    // is unreachable at all, or just blocking this browser from reading the
+    // response — the latter is common for a page opened as a local file and
+    // does NOT mean syncing will fail (writes use mode:'no-cors', see postToSheet).
+    try {
+      await fetch(url, { method: 'GET', mode: 'no-cors' });
+      s.textContent = '✓ Reached the server. This browser can\'t read the response directly (common when opening the file locally instead of hosting it) — that\'s expected and syncing doesn\'t need it. Check off a real set and confirm it appears in the Log tab to be sure.';
+      s.className = 'status-line ok';
+    } catch (e2) {
+      s.textContent = 'Could not reach the server at all (' + e2.message + '). Check your internet connection and that the URL was copied in full from a live deployment.';
+      s.className = 'status-line bad';
+    }
+    return;
+  }
+  const raw = await res.text();
+  let json = null;
+  try { json = JSON.parse(raw); } catch (e) { /* not JSON — handled below */ }
+  if (!json) {
+    if (/accounts\.google\.com|ServiceLogin|Sign in|Authorization required/i.test(raw)) {
+      s.textContent = 'Got a Google sign-in page instead of a response — your deployment\'s "Who has access" is probably set to "Only myself" instead of "Anyone". Redeploy (Deploy > Manage deployments > Edit) with access set to Anyone.';
+    } else {
+      s.textContent = 'Got an unexpected response (HTTP ' + res.status + ', not JSON). Open the Web App URL directly in a browser tab to see what it returns — that error will explain the deployment issue.';
+    }
+    s.className = 'status-line bad';
+    return;
+  }
+  if (json.ok) { s.textContent = '✓ Connected — ' + (json.message || 'endpoint is live.'); s.className = 'status-line ok'; }
+  else { s.textContent = 'Reached the endpoint, but it reported an error: ' + (json.error || 'unknown'); s.className = 'status-line bad'; }
+});
+document.getElementById('bwBtn').addEventListener('click', () => {
+  document.getElementById('bwDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('bwWeight').value = '';
+  document.getElementById('bwNotes').value = '';
+  document.getElementById('bwStatus').textContent = '';
+  document.getElementById('bwStatus').className = 'status-line';
+  openPanel('bwOverlay');
+});
+document.getElementById('bwSaveBtn').addEventListener('click', async () => {
+  const dateVal = document.getElementById('bwDate').value;
+  const weight = document.getElementById('bwWeight').value;
+  const notes = document.getElementById('bwNotes').value;
+  const s = document.getElementById('bwStatus');
+  if (!weight) { s.textContent = 'Enter a weight.'; s.className = 'status-line bad'; return; }
+  const [y,m,d] = dateVal.split('-');
+  const dateStr = `${parseInt(m)}/${parseInt(d)}/${y}`;
+  s.textContent = 'Logging…'; s.className = 'status-line';
+  try {
+    await postToSheet({ type:'bodyweight', date: dateStr, weight, notes });
+    s.textContent = '✓ Logged to sheet.'; s.className = 'status-line ok';
+    showToast('Bodyweight logged ✓', false);
+    setTimeout(()=>closePanel('bwOverlay'), 900);
+  } catch (e) {
+    s.textContent = e.message === 'no-url' ? 'Set your Web App URL in Settings first.' : 'Sync failed — check your connection / URL in Settings.';
+    s.className = 'status-line bad';
+  }
+});
+document.getElementById('syncAllBtn').addEventListener('click', syncAllPending);
+
+// ══════════════════════════════════════════════════════════════════════
+// WEEK 1 HISTORICAL SEED — added 2026-08-24
+// Ross logged all of Week 1 (Days 1,2,3,5,6,7) before this update, and it
+// already synced through to the Google Sheet's Log tab. This hardcodes
+// exactly those numbers (pulled directly from the live Sheet) so Week 1
+// always shows "completed" with the real weight/reps/RPE, regardless of
+// what's actually sitting in THIS browser's localStorage right now — a
+// fresh install, a cleared cache, or a re-download of the file would
+// otherwise show Week 1 as blank even though it's already been done and
+// is sitting in the Sheet. Exercise indices below match Block 1's current
+// (unchanged) accessory order — see resolveDay()'s day1/day2/day3/day5/
+// day6/day7 configs. Two set slots are deliberately left unseeded because
+// they simply aren't in the Sheet's Log (Day 5's Weighted Ab Work, Day 7's
+// Cable Pull-Through) — Ross didn't log those sets that week, so this
+// doesn't invent data for them.
+//
+// Only seeds a day if it ISN'T already marked completed locally — this
+// never overwrites real in-browser progress, it only fills the gap when
+// Week 1 would otherwise show as not-done.
+const WEEK1_SEED = {
+  day1: { sets: {
+    0:[{weight:215,reps:6,rpe:7}],
+    1:[{weight:195,reps:6,rpe:6},{weight:195,reps:6,rpe:6}],
+    2:[{weight:135,reps:10,rpe:7},{weight:135,reps:10,rpe:7},{weight:135,reps:10,rpe:7}],
+    3:[{weight:135,reps:10,rpe:5},{weight:135,reps:10,rpe:5},{weight:135,reps:10,rpe:5}],
+    4:[{weight:50,reps:12,rpe:6},{weight:50,reps:12,rpe:6},{weight:50,reps:12,rpe:6}],
+    5:[{weight:70,reps:15,rpe:5},{weight:70,reps:15,rpe:5},{weight:70,reps:15,rpe:5}],
+  }},
+  day2: { sets: {
+    0:[{weight:175,reps:6,rpe:7}],
+    1:[{weight:160,reps:6,rpe:6},{weight:160,reps:6,rpe:6}],
+    2:[{weight:50,reps:10,rpe:7},{weight:50,reps:10,rpe:7},{weight:50,reps:10,rpe:7}],
+    3:[{weight:85,reps:12,rpe:6},{weight:85,reps:12,rpe:6},{weight:85,reps:12,rpe:6}],
+    4:[{weight:15,reps:12,rpe:6},{weight:15,reps:12,rpe:7},{weight:15,reps:14,rpe:9}],
+    5:[{weight:50,reps:15,rpe:6},{weight:55,reps:13,rpe:7},{weight:55,reps:15,rpe:8}],
+  }},
+  day3: { sets: {
+    0:[{weight:250,reps:6,rpe:7}],
+    1:[{weight:225,reps:6,rpe:6},{weight:225,reps:6,rpe:6}],
+    2:[{weight:115,reps:12,rpe:6},{weight:115,reps:15,rpe:7},{weight:115,reps:15,rpe:7}],
+    3:[{weight:130,reps:10,rpe:9},{weight:120,reps:12,rpe:8},{weight:120,reps:12,rpe:8}],
+    4:[{weight:25,reps:12,rpe:8},{weight:25,reps:12,rpe:8},{weight:25,reps:12,rpe:8}],
+    5:[{weight:20,reps:15,rpe:6},{weight:20,reps:15,rpe:6},{weight:20,reps:15,rpe:6}],
+  }},
+  day5: { sets: {
+    0:[{weight:185,reps:6,rpe:6},{weight:185,reps:6,rpe:6},{weight:185,reps:6,rpe:6}],
+    1:[{weight:30,reps:12,rpe:7},{weight:30,reps:12,rpe:7},{weight:30,reps:12,rpe:7}],
+    2:[{weight:40,reps:12,rpe:6},{weight:40,reps:12,rpe:6},{weight:40,reps:12,rpe:6}],
+    3:[{weight:140,reps:10,rpe:7},{weight:140,reps:10,rpe:7},{weight:140,reps:10,rpe:7}],
+    // 4 (Weighted Ab Work) — not in the Sheet's Log for this day, left unseeded.
+  }},
+  day6: { sets: {
+    0:[{weight:135,reps:6,rpe:6},{weight:135,reps:6,rpe:6},{weight:135,reps:6,rpe:6}],
+    1:[{weight:40,reps:10,rpe:7},{weight:40,reps:10,rpe:7},{weight:40,reps:10,rpe:7}],
+    2:[{weight:20,reps:12,rpe:7},{weight:20,reps:12,rpe:7},{weight:20,reps:12,rpe:7}],
+    3:[{weight:20,reps:10,rpe:7},{weight:20,reps:10,rpe:7},{weight:20,reps:10,rpe:7}],
+    4:[{weight:40,reps:10,rpe:6},{weight:40,reps:15,rpe:6},{weight:40,reps:15,rpe:6}],
+  }},
+  day7: { sets: {
+    0:[{weight:205,reps:8,rpe:6},{weight:205,reps:8,rpe:6},{weight:205,reps:8,rpe:6}],
+    1:[{weight:140,reps:10,rpe:7},{weight:140,reps:10,rpe:7},{weight:140,reps:10,rpe:7}],
+    2:[{weight:130,reps:10,rpe:8},{weight:130,reps:10,rpe:8},{weight:130,reps:10,rpe:8}],
+    3:[{weight:60,reps:10,rpe:6},{weight:60,reps:10,rpe:6},{weight:60,reps:10,rpe:6}],
+    // 4 (Cable Pull-Through) — not in the Sheet's Log for this day, left unseeded.
+    5:[{weight:50,reps:12,rpe:8},{weight:50,reps:12,rpe:8},{weight:50,reps:12,rpe:8}],
+  }},
+};
+function seedWeek1IfNeeded() {
+  Object.keys(WEEK1_SEED).forEach(dayKey => {
+    if (isCompleted(1, dayKey)) return; // already marked complete locally — never overwrite
+    const seed = WEEK1_SEED[dayKey];
+    const day = resolveDay(1, dayKey);
+    const state = getState(1, dayKey, day);
+    Object.keys(seed.sets).forEach(exIdxStr => {
+      const exIdx = parseInt(exIdxStr, 10);
+      const rows = state.sets[exIdx];
+      if (!rows) return;
+      seed.sets[exIdxStr].forEach((sr, si) => {
+        if (!rows[si]) return;
+        rows[si].weight = sr.weight;
+        rows[si].reps = sr.reps;
+        rows[si].rpe = sr.rpe;
+        rows[si].checked = true;
+        rows[si].syncStatus = 'synced'; // already confirmed present in the Sheet's Log tab
+      });
+    });
+    state.completed = true;
+    saveState(1, dayKey, state);
+  });
+}
+seedWeek1IfNeeded();
+
+renderBlockStrip(); renderWeekStrip(); renderTabs(); renderDay(); updateSyncIndicator();
+</script>
+</body>
+</html>
