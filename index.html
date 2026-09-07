@@ -474,6 +474,13 @@ const DAY_META = {
   day7:{ label:'Day 7', tab:'DL\nVar', title:'Deadlift (Variation) + Pull Hypertrophy', type:'deadlift', lift:'Deadlift', session:'Day7 - Deadlift Variation', kind:'variation' },
 };
 const DAY_ORDER = ['day1','day2','day3','day4','day5','day6','day7'];
+function dayKeyForSession(session) {
+  for (let i = 0; i < DAY_ORDER.length; i++) {
+    const dk = DAY_ORDER[i];
+    if (DAY_META[dk].session === session) return dk;
+  }
+  return null;
+}
 
 function blockForWeek(week) { return BLOCKS.find(b => b.weeks.includes(week)); }
 function weekInBlock(week) { const b = blockForWeek(week); return b.weeks.indexOf(week) + 1; }
@@ -751,6 +758,105 @@ function applySetPatch(week, dayKey, exIdx, setIdx, patch) {
   return state;
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// PULL FROM SHEET — added 2026-08-24
+// Reconciles OTHER devices' logged sets into this browser's localStorage.
+// Without this, the app only ever pushed to the Sheet — a set checked off
+// on the phone had no way to show as checked/completed when later opening
+// the same (now GitHub-Pages-hosted) app on a desktop, since each browser's
+// localStorage is a private silo. The Sheet's Log tab is the one place
+// every device already writes to, so it doubles as the shared source of
+// truth for reads too.
+//
+// Merge rule, deliberately conservative: a pulled set only fills a LOCAL
+// set-row that is still completely untouched (no weight/reps/rpe, not
+// checked) — see isRowEmpty(). It never overwrites a row that already has
+// any local data, synced or not, so an in-progress edit on this device is
+// never clobbered by a pull. A day gets marked completed if the pull filled
+// at least one of its rows and it wasn't already completed locally — same
+// no-clobber-on-completed philosophy as WEEK1_SEED above, generalized to
+// every week instead of hardcoded to Week 1.
+//
+// Matching a pulled row to an exercise slot: main-lift rows (Squat/Bench/
+// Deadlift) match by Set Type ("Top Set"/"Backoff", always exactly 2 slots).
+// Accessory/variation rows match by exercise NAME against today's resolved
+// exercise list — same principle (and same limitation) as
+// prevWeekAccessoryMap() above: if an exercise has been substituted since
+// it was logged, the old logged name won't match today's slot and that
+// particular pulled row is silently skipped rather than mis-filed.
+function isRowEmpty(row) {
+  return !row.weight && row.weight !== 0 && !row.reps && row.reps !== 0 && !row.rpe && row.rpe !== 0 && !row.checked;
+}
+function mergeLogRows(rows) {
+  let filledCount = 0, daysTouched = 0;
+  const groups = {};
+  rows.forEach(r => {
+    const dayKey = dayKeyForSession(r.session);
+    const week = parseInt(r.week, 10);
+    if (!dayKey || !week) return; // unrecognized session/week — skip defensively
+    const key = `${week}|${dayKey}`;
+    (groups[key] = groups[key] || []).push(r);
+  });
+  Object.keys(groups).forEach(key => {
+    const [weekStr, dayKey] = key.split('|');
+    const week = parseInt(weekStr, 10);
+    const day = resolveDay(week, dayKey);
+    if (day.meta.kind === 'rest') return;
+    const state = getState(week, dayKey, day);
+    const nameToIdx = {};
+    let topIdx = -1, backoffIdx = -1;
+    day.exercises.forEach((ex, idx) => {
+      if (ex.exType === 'main') {
+        if (ex.setType === 'Top Set') topIdx = idx;
+        else if (ex.setType === 'Backoff') backoffIdx = idx;
+      } else if (ex.exType === 'accessory' || ex.exType === 'variation') {
+        nameToIdx[ex.name] = idx;
+      }
+    });
+    let dayFilled = false;
+    groups[key].forEach(r => {
+      let exIdx;
+      if (r.setType === 'Top Set') exIdx = topIdx;
+      else if (r.setType === 'Backoff') exIdx = backoffIdx;
+      else exIdx = nameToIdx[r.exercise];
+      if (exIdx === undefined || exIdx < 0) return;
+      const setIdx = parseInt(r.setNum, 10) - 1;
+      const setRows = state.sets[exIdx];
+      if (!setRows || !setRows[setIdx]) return;
+      const localRow = setRows[setIdx];
+      if (!isRowEmpty(localRow)) return; // no-clobber
+      localRow.weight = r.weight;
+      localRow.reps = r.reps;
+      localRow.rpe = r.rpe;
+      localRow.checked = true;
+      localRow.syncStatus = 'synced';
+      filledCount++;
+      dayFilled = true;
+    });
+    if (dayFilled) {
+      if (!state.completed) state.completed = true;
+      saveState(week, dayKey, state);
+      daysTouched++;
+    }
+  });
+  return { filledCount, daysTouched };
+}
+async function pullFromSheet() {
+  const url = getWebAppUrl();
+  if (!url) return { ok:false, reason:'no-url' };
+  let json;
+  try {
+    const sep = url.indexOf('?') >= 0 ? '&' : '?';
+    const res = await fetch(url + sep + 'action=getLog');
+    json = await res.json();
+  } catch (e) {
+    return { ok:false, reason:'fetch-failed', error: e.message };
+  }
+  if (!json || !json.ok) return { ok:false, reason:'bad-response', error: json && json.error };
+  const result = mergeLogRows(json.rows || []);
+  return { ok:true, filledCount: result.filledCount, daysTouched: result.daysTouched };
+}
+
 async function syncSet(exIdx, setIdx) {
   const week = currentWeek, dayKey = activeDay;
   const day = resolveDay(week, dayKey);
@@ -816,9 +922,26 @@ async function syncAllPending() {
     }
   }
   renderDay(); updateSyncIndicator();
-  if (pendingCount === 0) showToast('Nothing to sync — all caught up', false);
-  else if (failCount === 0) showToast(`Synced ${pendingCount} set${pendingCount===1?'':'s'} ✓`, false);
-  else showToast(`Synced ${pendingCount-failCount}/${pendingCount} — ${failCount} failed, check connection`, true);
+
+  // After pushing whatever was pending, also PULL — this is what makes the
+  // ☁ button a full two-way sync instead of push-only, so sets logged on
+  // another device (e.g. the phone) show up here too. See "PULL FROM SHEET"
+  // above for the merge rule.
+  const pull = await pullFromSheet();
+  if (pull.ok && pull.filledCount > 0) {
+    renderTabs(); renderDay(); updateSyncIndicator();
+  }
+
+  let msg;
+  if (pendingCount === 0) msg = 'Nothing to push';
+  else if (failCount === 0) msg = `Pushed ${pendingCount} set${pendingCount===1?'':'s'} ✓`;
+  else msg = `Pushed ${pendingCount-failCount}/${pendingCount} — ${failCount} failed, check connection`;
+  if (pull.ok && pull.filledCount > 0) {
+    msg += ` · pulled ${pull.filledCount} set${pull.filledCount===1?'':'s'} from another device ✓`;
+  } else if (pendingCount === 0) {
+    msg = 'Up to date — nothing to push or pull';
+  }
+  showToast(msg, failCount > 0);
 }
 
 function countPendingOrFailed() {
@@ -1308,6 +1431,20 @@ function seedWeek1IfNeeded() {
 seedWeek1IfNeeded();
 
 renderBlockStrip(); renderWeekStrip(); renderTabs(); renderDay(); updateSyncIndicator();
+
+// Background pull on load — if a Web App URL is already configured, quietly
+// check for sets logged on other devices (e.g. the phone) and merge them in
+// without blocking the initial render. Only re-renders / shows a toast if
+// something actually changed, so opening the app when nothing's new is
+// silent. See "PULL FROM SHEET" above.
+if (getWebAppUrl()) {
+  pullFromSheet().then(result => {
+    if (result.ok && result.filledCount > 0) {
+      renderTabs(); renderDay(); updateSyncIndicator();
+      showToast(`Pulled ${result.filledCount} set${result.filledCount===1?'':'s'} from another device ✓`, false);
+    }
+  }).catch(() => {}); // silent — offline or unreachable is not an error worth surfacing on load
+}
 </script>
 </body>
 </html>
