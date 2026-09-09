@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>16-Week Powerbuilding Tracker</title>
+<title>24-Week Meet Prep Tracker</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,7 +35,7 @@
   .icon-btn.sync-pending { border-color: var(--prescribed); color: var(--prescribed); }
 
   /* ── BLOCK STRIP ── */
-  .block-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
+  .block-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
   .block-cell { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 6px; text-align: center; cursor: pointer; transition: all .2s; }
   .block-cell:hover { border-color: var(--muted); }
   .block-cell.active { border-color: var(--prescribed); background: rgba(245,158,11,0.1); }
@@ -185,7 +185,7 @@
 
 <header>
   <div class="header-titles">
-    <div class="program-title">16-Week Powerbuilding</div>
+    <div class="program-title">24-Week Meet Prep</div>
     <div class="program-sub">Coach Oreb · Block Periodized · RPE Autoregulated</div>
   </div>
   <div class="header-btns">
@@ -218,7 +218,7 @@
     </div>
     <div class="status-line" id="connStatus"></div>
     <label class="field-label">Starting maxes (reference only)</label>
-    <div class="panel-sub" style="margin-bottom:0;">Bench 225 · Squat 275 · Deadlift 335 lbs (Deadlift TM revised Week 3, Sept 2026 — see note below). Update your Training Max in the Plan tab of the Sheet when a block resets.</div>
+    <div class="panel-sub" style="margin-bottom:0;">Starting (Wk4) TM: Bench 225 · Squat 275 · Deadlift 335 lbs. Meet goal (Jan 31, 2027, Wk24): Bench 250 · Squat 315 · Deadlift 435 — 1,000 lb total. Update your Training Max in the Plan tab of the Sheet when a block resets.</div>
   </div>
 </div>
 
@@ -273,40 +273,64 @@ const PLAN_ROWS = [
   [4,'Deadlift','Top Set',280,6,10],[4,'Deadlift','Backoff',250,6,9],
   [5,'Bench','Top Set',195,4,7],[5,'Bench','Backoff',175,4,6],
   [5,'Squat','Top Set',240,4,7],[5,'Squat','Backoff',215,4,6],
-  [5,'Deadlift','Top Set',290,4,7],[5,'Deadlift','Backoff',260,4,6],
+  [5,'Deadlift','Top Set',295,4,7],[5,'Deadlift','Backoff',265,4,6],
   [6,'Bench','Top Set',195,4,8],[6,'Bench','Backoff',175,4,7],
   [6,'Squat','Top Set',245,4,8],[6,'Squat','Backoff',220,4,7],
-  [6,'Deadlift','Top Set',295,4,8],[6,'Deadlift','Backoff',265,4,7],
+  [6,'Deadlift','Top Set',305,4,8],[6,'Deadlift','Backoff',275,4,7],
   [7,'Bench','Top Set',200,4,9],[7,'Bench','Backoff',180,4,8],
   [7,'Squat','Top Set',250,4,9],[7,'Squat','Backoff',225,4,8],
-  [7,'Deadlift','Top Set',305,4,9],[7,'Deadlift','Backoff',275,4,8],
+  [7,'Deadlift','Top Set',310,4,9],[7,'Deadlift','Backoff',280,4,8],
   [8,'Bench','Top Set',205,4,10],[8,'Bench','Backoff',185,4,9],
   [8,'Squat','Top Set',255,4,10],[8,'Squat','Backoff',230,4,9],
-  [8,'Deadlift','Top Set',310,4,10],[8,'Deadlift','Backoff',280,4,9],
-  [9,'Bench','Top Set',205,3,7],[9,'Bench','Backoff',185,3,6],
-  [9,'Squat','Top Set',255,3,7],[9,'Squat','Backoff',230,3,6],
-  [9,'Deadlift','Top Set',305,3,7],[9,'Deadlift','Backoff',275,3,6],
-  [10,'Bench','Top Set',210,3,8],[10,'Bench','Backoff',190,3,7],
-  [10,'Squat','Top Set',260,3,8],[10,'Squat','Backoff',235,3,7],
-  [10,'Deadlift','Top Set',315,3,8],[10,'Deadlift','Backoff',285,3,7],
-  [11,'Bench','Top Set',215,3,9],[11,'Bench','Backoff',195,3,8],
-  [11,'Squat','Top Set',270,3,9],[11,'Squat','Backoff',245,3,8],
-  [11,'Deadlift','Top Set',320,3,9],[11,'Deadlift','Backoff',290,3,8],
-  [12,'Bench','Top Set',215,3,10],[12,'Bench','Backoff',195,3,9],
-  [12,'Squat','Top Set',270,3,10],[12,'Squat','Backoff',245,3,9],
-  [12,'Deadlift','Top Set',325,3,10],[12,'Deadlift','Backoff',295,3,9],
-  [13,'Bench','Top Set',215,2,7],[13,'Bench','Backoff',195,2,6],
-  [13,'Squat','Top Set',270,2,7],[13,'Squat','Backoff',245,2,6],
-  [13,'Deadlift','Top Set',325,2,7],[13,'Deadlift','Backoff',295,2,6],
-  [14,'Bench','Top Set',220,2,8],[14,'Bench','Backoff',200,2,7],
-  [14,'Squat','Top Set',280,2,8],[14,'Squat','Backoff',250,2,7],
-  [14,'Deadlift','Top Set',335,2,8],[14,'Deadlift','Backoff',300,2,7],
-  [15,'Bench','Top Set',225,2,9],[15,'Bench','Backoff',205,2,8],
-  [15,'Squat','Top Set',285,2,9],[15,'Squat','Backoff',255,2,8],
-  [15,'Deadlift','Top Set',345,2,9],[15,'Deadlift','Backoff',310,2,8],
-  [16,'Bench','Top Set',240,1,10],
-  [16,'Squat','Top Set',305,1,10],
-  [16,'Deadlift','Top Set',365,1,10],
+  [8,'Deadlift','Top Set',315,4,10],[8,'Deadlift','Backoff',285,4,9],
+  [9,'Bench','Top Set',195,4,7],[9,'Bench','Backoff',175,4,6],
+  [9,'Squat','Top Set',245,4,7],[9,'Squat','Backoff',220,4,6],
+  [9,'Deadlift','Top Set',310,4,7],[9,'Deadlift','Backoff',280,4,6],
+  [10,'Bench','Top Set',200,4,8],[10,'Bench','Backoff',180,4,7],
+  [10,'Squat','Top Set',250,4,8],[10,'Squat','Backoff',225,4,7],
+  [10,'Deadlift','Top Set',315,4,8],[10,'Deadlift','Backoff',285,4,7],
+  [11,'Bench','Top Set',205,4,9],[11,'Bench','Backoff',185,4,8],
+  [11,'Squat','Top Set',255,4,9],[11,'Squat','Backoff',230,4,8],
+  [11,'Deadlift','Top Set',325,4,9],[11,'Deadlift','Backoff',295,4,8],
+  [12,'Bench','Top Set',210,4,10],[12,'Bench','Backoff',190,4,9],
+  [12,'Squat','Top Set',260,4,10],[12,'Squat','Backoff',235,4,9],
+  [12,'Deadlift','Top Set',330,4,10],[12,'Deadlift','Backoff',295,4,9],
+  [13,'Bench','Top Set',205,3,7],[13,'Bench','Backoff',185,3,6],
+  [13,'Squat','Top Set',260,3,7],[13,'Squat','Backoff',235,3,6],
+  [13,'Deadlift','Top Set',335,3,7],[13,'Deadlift','Backoff',300,3,6],
+  [14,'Bench','Top Set',215,3,8],[14,'Bench','Backoff',195,3,7],
+  [14,'Squat','Top Set',265,3,8],[14,'Squat','Backoff',240,3,7],
+  [14,'Deadlift','Top Set',345,3,8],[14,'Deadlift','Backoff',310,3,7],
+  [15,'Bench','Top Set',220,3,9],[15,'Bench','Backoff',200,3,8],
+  [15,'Squat','Top Set',270,3,9],[15,'Squat','Backoff',245,3,8],
+  [15,'Deadlift','Top Set',355,3,9],[15,'Deadlift','Backoff',320,3,8],
+  [16,'Bench','Top Set',220,3,10],[16,'Bench','Backoff',200,3,9],
+  [16,'Squat','Top Set',275,3,10],[16,'Squat','Backoff',250,3,9],
+  [16,'Deadlift','Top Set',360,3,10],[16,'Deadlift','Backoff',325,3,9],
+  [17,'Bench','Top Set',210,3,7],[17,'Bench','Backoff',190,3,6],
+  [17,'Squat','Top Set',265,3,7],[17,'Squat','Backoff',240,3,6],
+  [17,'Deadlift','Top Set',360,3,7],[17,'Deadlift','Backoff',325,3,6],
+  [18,'Bench','Top Set',215,3,8],[18,'Bench','Backoff',195,3,7],
+  [18,'Squat','Top Set',270,3,8],[18,'Squat','Backoff',245,3,7],
+  [18,'Deadlift','Top Set',370,3,8],[18,'Deadlift','Backoff',335,3,7],
+  [19,'Bench','Top Set',220,3,9],[19,'Bench','Backoff',200,3,8],
+  [19,'Squat','Top Set',275,3,9],[19,'Squat','Backoff',250,3,8],
+  [19,'Deadlift','Top Set',375,3,9],[19,'Deadlift','Backoff',340,3,8],
+  [20,'Bench','Top Set',225,3,10],[20,'Bench','Backoff',205,3,9],
+  [20,'Squat','Top Set',280,3,10],[20,'Squat','Backoff',250,3,9],
+  [20,'Deadlift','Top Set',385,3,10],[20,'Deadlift','Backoff',345,3,9],
+  [21,'Bench','Top Set',225,2,7],[21,'Bench','Backoff',205,2,6],
+  [21,'Squat','Top Set',280,2,7],[21,'Squat','Backoff',250,2,6],
+  [21,'Deadlift','Top Set',390,2,7],[21,'Deadlift','Backoff',350,2,6],
+  [22,'Bench','Top Set',230,2,8],[22,'Bench','Backoff',205,2,7],
+  [22,'Squat','Top Set',290,2,8],[22,'Squat','Backoff',260,2,7],
+  [22,'Deadlift','Top Set',400,2,8],[22,'Deadlift','Backoff',360,2,7],
+  [23,'Bench','Top Set',235,2,9],[23,'Bench','Backoff',210,2,8],
+  [23,'Squat','Top Set',295,2,9],[23,'Squat','Backoff',265,2,8],
+  [23,'Deadlift','Top Set',410,2,9],[23,'Deadlift','Backoff',370,2,8],
+  [24,'Bench','Top Set',250,1,10],
+  [24,'Squat','Top Set',315,1,10],
+  [24,'Deadlift','Top Set',435,1,10],
 ];
 const PLAN = {};
 PLAN_ROWS.forEach(r => { PLAN[`${r[0]}|${r[1]}|${r[2]}`] = { weight:r[3], reps:r[4], rpe:r[5] }; });
@@ -349,7 +373,7 @@ const BLOCKS = [
         {name:'Cable Pull-Through', sets:3, reps:'15'},
         {name:'Cable Bicep Curl', sets:3, reps:'12-15'} ]},
     }},
-  { num:2, name:'Strength-Hypertrophy', weeks:[5,6,7,8], variationSets:3, variationReps:'4-6', varRPE:[6,7,8,9],
+  { num:2, name:'Str-Hyp I', weeks:[5,6,7,8], variationSets:3, variationReps:'4-6', varRPE:[6,7,8,9],
     days: {
       day1:{ accessories:[
         {name:'Stiletto Squat', sets:3, reps:'8-10'},
@@ -383,7 +407,41 @@ const BLOCKS = [
         {name:'Cable Pull-Through', sets:3, reps:'12-15'},
         {name:'Cable Bicep Curl', sets:3, reps:'10-12'} ]},
     }},
-  { num:3, name:'Strength', weeks:[9,10,11,12], variationSets:3, variationReps:'3-5', varRPE:[6,7,8,9],
+  { num:3, name:'Str-Hyp II', weeks:[9,10,11,12], variationSets:3, variationReps:'4-6', varRPE:[6,7,8,9],
+    days: {
+      day1:{ accessories:[
+        {name:'Stiletto Squat', sets:3, reps:'8-10'},
+        {name:'Romanian Deadlift', sets:3, reps:'8-10'},
+        {name:'Standing Leg Curl (Cable)', sets:3, reps:'10'},
+        {name:'Weighted Ab Work', sets:3, reps:'12-15'} ]},
+      day2:{ accessories:[
+        {name:'Incline DB Press', sets:3, reps:'8-10'},
+        {name:'Close-Grip Bench Press', sets:3, reps:'8-10'},
+        {name:'Lateral Raise', sets:3, reps:'12-15'},
+        {name:'Tricep Pushdown', sets:3, reps:'10-12'} ]},
+      day3:{ accessories:[
+        {name:'Barbell Row', sets:3, reps:'8-10'},
+        {name:'Lat Pulldown', sets:3, reps:'8-10'},
+        {name:'Standing Leg Curl (Cable)', sets:3, reps:'10'},
+        {name:'Pallof Press (Cable)', sets:3, reps:'10-12'} ]},
+      day5:{ variationName:'Pause Squat or Front Squat', accessories:[
+        {name:'Bulgarian Split Squat', sets:3, reps:'8-10/leg'},
+        {name:'Leg Extension (Cable)', sets:3, reps:'10-12'},
+        {name:'Standing Calf Raise', sets:3, reps:'12-15'},
+        {name:'Weighted Ab Work', sets:3, reps:'12-15'} ]},
+      day6:{ variationName:'Spoto Press or Paused Bench', accessories:[
+        {name:'Seated DB Shoulder Press', sets:3, reps:'8-10'},
+        {name:'Cable Fly', sets:3, reps:'10-12'},
+        {name:'Overhead Tricep Extension', sets:3, reps:'10-12'},
+        {name:'Face Pulls', sets:3, reps:'12-15'} ]},
+      day7:{ variationName:'Deficit Deadlift or Rack Pull', accessories:[
+        {name:'Lat Pulldown', sets:3, reps:'8-10'},
+        {name:'Seated Cable Row', sets:3, reps:'8-10'},
+        {name:'DB Shrugs', sets:3, reps:'10-12'},
+        {name:'Cable Pull-Through', sets:3, reps:'12-15'},
+        {name:'Cable Bicep Curl', sets:3, reps:'10-12'} ]},
+    }},
+  { num:4, name:'Strength I', weeks:[13,14,15,16], variationSets:3, variationReps:'3-5', varRPE:[6,7,8,9],
     days: {
       day1:{ accessories:[
         {name:'Stiletto Squat', sets:3, reps:'6-8'},
@@ -417,7 +475,41 @@ const BLOCKS = [
         {name:'Cable Pull-Through', sets:3, reps:'10-12'},
         {name:'Cable Bicep Curl', sets:3, reps:'8-10'} ]},
     }},
-  { num:4, name:'Peak', weeks:[13,14,15,16], variationSets:3, variationReps:'3-5', varRPE:[6,7,8], testWeek:16,
+  { num:5, name:'Strength II', weeks:[17,18,19,20], variationSets:3, variationReps:'3-5', varRPE:[6,7,8,9],
+    days: {
+      day1:{ accessories:[
+        {name:'Stiletto Squat', sets:3, reps:'6-8'},
+        {name:'Romanian Deadlift', sets:3, reps:'6-8'},
+        {name:'Standing Leg Curl (Cable)', sets:3, reps:'8'},
+        {name:'Weighted Ab Work', sets:3, reps:'12'} ]},
+      day2:{ accessories:[
+        {name:'Incline DB Press', sets:3, reps:'6-8'},
+        {name:'Close-Grip Bench Press', sets:3, reps:'6-8'},
+        {name:'Lateral Raise', sets:3, reps:'10-12'},
+        {name:'Tricep Pushdown', sets:3, reps:'8-10'} ]},
+      day3:{ accessories:[
+        {name:'Barbell Row', sets:3, reps:'6-8'},
+        {name:'Lat Pulldown', sets:3, reps:'6-8'},
+        {name:'Standing Leg Curl (Cable)', sets:3, reps:'8'},
+        {name:'Pallof Press (Cable)', sets:3, reps:'10'} ]},
+      day5:{ variationName:'Pause Squat or Front Squat', accessories:[
+        {name:'Bulgarian Split Squat', sets:3, reps:'6-8/leg'},
+        {name:'Leg Extension (Cable)', sets:3, reps:'8-10'},
+        {name:'Standing Calf Raise', sets:3, reps:'10-12'},
+        {name:'Weighted Ab Work', sets:3, reps:'12'} ]},
+      day6:{ variationName:'Spoto Press or Paused Bench', accessories:[
+        {name:'Seated DB Shoulder Press', sets:3, reps:'6-8'},
+        {name:'Cable Fly', sets:3, reps:'8-10'},
+        {name:'Overhead Tricep Extension', sets:3, reps:'8-10'},
+        {name:'Face Pulls', sets:3, reps:'10-12'} ]},
+      day7:{ variationName:'Deficit Deadlift or Rack Pull', accessories:[
+        {name:'Lat Pulldown', sets:3, reps:'6-8'},
+        {name:'Seated Cable Row', sets:3, reps:'6-8'},
+        {name:'DB Shrugs', sets:3, reps:'8-10'},
+        {name:'Cable Pull-Through', sets:3, reps:'10-12'},
+        {name:'Cable Bicep Curl', sets:3, reps:'8-10'} ]},
+    }},
+  { num:6, name:'Peak', weeks:[21,22,23,24], variationSets:3, variationReps:'3-5', varRPE:[6,7,8], testWeek:24,
     days: {
       day1:{ accessories:[ {name:'Stiletto Squat', sets:3, reps:'6-8', optional:true, note:'Pick 1-2 accessories max — less is more this block.'} ]},
       day2:{ accessories:[ {name:'Incline DB Press', sets:3, reps:'6-8', optional:true, note:'Pick 1-2 accessories max — less is more this block.'} ]},
@@ -522,7 +614,7 @@ function resolveDay(week, dayKey) {
     exercises.push({
       name: meta.lift, exType:'main', setType:'Top Set', sets:1,
       reps: top.reps, rpeTarget: top.rpe, prescribedWeight: top.weight,
-      note: isTest ? '1RM Test — ramp up, then attempt your Block 4 Training Max' : 'Main strength lift · chase the prescribed RPE, not just the weight'
+      note: isTest ? 'MEET DAY (Jan 31, 2027) — log your best successful attempt here after the meet, or your final planned attempt going in.' : 'Main strength lift · chase the prescribed RPE, not just the weight'
     });
     if (!isTest) {
       const bo = PLAN[`${week}|${meta.lift}|Backoff`];
@@ -544,7 +636,7 @@ function resolveDay(week, dayKey) {
     const varSub = getVariationSub(dayKey);
     if (isTest) {
       const baseVariationName = cfg.variationName || meta.lift;
-      exercises.push({ name: varSub || baseVariationName, baseVariationName, exType:'skip', note:'Test week — skip variation work entirely, or light technique-only reps at RPE 5.' });
+      exercises.push({ name: varSub || baseVariationName, baseVariationName, exType:'skip', note:'Meet week — skip variation work entirely, or light technique-only reps at RPE 5.' });
     } else {
       const rpe = block.varRPE[wib-1];
       const baseVariationName = cfg.variationName;
