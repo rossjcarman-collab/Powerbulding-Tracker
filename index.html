@@ -218,7 +218,7 @@
     </div>
     <div class="status-line" id="connStatus"></div>
     <label class="field-label">Starting maxes (reference only)</label>
-    <div class="panel-sub" style="margin-bottom:0;">Bench 225 · Squat 275 · Deadlift 315 lbs (Aug 2026). Update your Training Max in the Plan tab of the Sheet when a block resets.</div>
+    <div class="panel-sub" style="margin-bottom:0;">Bench 225 · Squat 275 · Deadlift 335 lbs (Deadlift TM revised Week 3, Sept 2026 — see note below). Update your Training Max in the Plan tab of the Sheet when a block resets.</div>
   </div>
 </div>
 
@@ -270,43 +270,43 @@ const PLAN_ROWS = [
   [3,'Deadlift','Top Set',260,6,9],[3,'Deadlift','Backoff',235,6,8],
   [4,'Bench','Top Set',190,6,10],[4,'Bench','Backoff',170,6,9],
   [4,'Squat','Top Set',230,6,10],[4,'Squat','Backoff',205,6,9],
-  [4,'Deadlift','Top Set',265,6,10],[4,'Deadlift','Backoff',240,6,9],
+  [4,'Deadlift','Top Set',280,6,10],[4,'Deadlift','Backoff',250,6,9],
   [5,'Bench','Top Set',195,4,7],[5,'Bench','Backoff',175,4,6],
   [5,'Squat','Top Set',240,4,7],[5,'Squat','Backoff',215,4,6],
-  [5,'Deadlift','Top Set',270,4,7],[5,'Deadlift','Backoff',245,4,6],
+  [5,'Deadlift','Top Set',290,4,7],[5,'Deadlift','Backoff',260,4,6],
   [6,'Bench','Top Set',195,4,8],[6,'Bench','Backoff',175,4,7],
   [6,'Squat','Top Set',245,4,8],[6,'Squat','Backoff',220,4,7],
-  [6,'Deadlift','Top Set',280,4,8],[6,'Deadlift','Backoff',250,4,7],
+  [6,'Deadlift','Top Set',295,4,8],[6,'Deadlift','Backoff',265,4,7],
   [7,'Bench','Top Set',200,4,9],[7,'Bench','Backoff',180,4,8],
   [7,'Squat','Top Set',250,4,9],[7,'Squat','Backoff',225,4,8],
-  [7,'Deadlift','Top Set',285,4,9],[7,'Deadlift','Backoff',255,4,8],
+  [7,'Deadlift','Top Set',305,4,9],[7,'Deadlift','Backoff',275,4,8],
   [8,'Bench','Top Set',205,4,10],[8,'Bench','Backoff',185,4,9],
   [8,'Squat','Top Set',255,4,10],[8,'Squat','Backoff',230,4,9],
-  [8,'Deadlift','Top Set',290,4,10],[8,'Deadlift','Backoff',260,4,9],
+  [8,'Deadlift','Top Set',310,4,10],[8,'Deadlift','Backoff',280,4,9],
   [9,'Bench','Top Set',205,3,7],[9,'Bench','Backoff',185,3,6],
   [9,'Squat','Top Set',255,3,7],[9,'Squat','Backoff',230,3,6],
-  [9,'Deadlift','Top Set',290,3,7],[9,'Deadlift','Backoff',260,3,6],
+  [9,'Deadlift','Top Set',305,3,7],[9,'Deadlift','Backoff',275,3,6],
   [10,'Bench','Top Set',210,3,8],[10,'Bench','Backoff',190,3,7],
   [10,'Squat','Top Set',260,3,8],[10,'Squat','Backoff',235,3,7],
-  [10,'Deadlift','Top Set',295,3,8],[10,'Deadlift','Backoff',265,3,7],
+  [10,'Deadlift','Top Set',315,3,8],[10,'Deadlift','Backoff',285,3,7],
   [11,'Bench','Top Set',215,3,9],[11,'Bench','Backoff',195,3,8],
   [11,'Squat','Top Set',270,3,9],[11,'Squat','Backoff',245,3,8],
-  [11,'Deadlift','Top Set',305,3,9],[11,'Deadlift','Backoff',275,3,8],
+  [11,'Deadlift','Top Set',320,3,9],[11,'Deadlift','Backoff',290,3,8],
   [12,'Bench','Top Set',215,3,10],[12,'Bench','Backoff',195,3,9],
   [12,'Squat','Top Set',270,3,10],[12,'Squat','Backoff',245,3,9],
-  [12,'Deadlift','Top Set',310,3,10],[12,'Deadlift','Backoff',280,3,9],
+  [12,'Deadlift','Top Set',325,3,10],[12,'Deadlift','Backoff',295,3,9],
   [13,'Bench','Top Set',215,2,7],[13,'Bench','Backoff',195,2,6],
   [13,'Squat','Top Set',270,2,7],[13,'Squat','Backoff',245,2,6],
-  [13,'Deadlift','Top Set',310,2,7],[13,'Deadlift','Backoff',280,2,6],
+  [13,'Deadlift','Top Set',325,2,7],[13,'Deadlift','Backoff',295,2,6],
   [14,'Bench','Top Set',220,2,8],[14,'Bench','Backoff',200,2,7],
   [14,'Squat','Top Set',280,2,8],[14,'Squat','Backoff',250,2,7],
-  [14,'Deadlift','Top Set',315,2,8],[14,'Deadlift','Backoff',285,2,7],
+  [14,'Deadlift','Top Set',335,2,8],[14,'Deadlift','Backoff',300,2,7],
   [15,'Bench','Top Set',225,2,9],[15,'Bench','Backoff',205,2,8],
   [15,'Squat','Top Set',285,2,9],[15,'Squat','Backoff',255,2,8],
-  [15,'Deadlift','Top Set',325,2,9],[15,'Deadlift','Backoff',295,2,8],
+  [15,'Deadlift','Top Set',345,2,9],[15,'Deadlift','Backoff',310,2,8],
   [16,'Bench','Top Set',240,1,10],
   [16,'Squat','Top Set',305,1,10],
-  [16,'Deadlift','Top Set',345,1,10],
+  [16,'Deadlift','Top Set',365,1,10],
 ];
 const PLAN = {};
 PLAN_ROWS.forEach(r => { PLAN[`${r[0]}|${r[1]}|${r[2]}`] = { weight:r[3], reps:r[4], rpe:r[5] }; });
